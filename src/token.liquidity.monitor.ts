@@ -41,7 +41,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddress: st
 
     // Check if creator  of pool removes liquidity
     for (const event of poolCreatedEvents) {
-      const poolAddress = event.values.pool;
+      const poolAddress = event.args.pool;
       const poolEvents = txEvent.filterLog(ADDLIQUIDITY_EVENT_ABI, poolAddress);
       if (poolEvents.length > 0) {
         findings.push(
@@ -61,7 +61,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddress: st
     }
     // Check if creator of pair removes liquidity
     for (const event of pairCreatedEvents) {
-      const pairAddress = event.values.pair;
+      const pairAddress = event.args.pair;
       const pairEvents = txEvent.filterLog(ADDLIQUIDITY_EVENT_ABI, pairAddress);
       if (pairEvents.length > 0) {
         findings.push(
@@ -82,7 +82,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddress: st
 
     // check if creator takes large amount of token and sell on the token liquidity pool
     for (const event of addLiquidityEvents) {
-      if (event.values.amount0.gt(BigNumber.from(1000000000000000000000)) || event.values.amount1.gt(BigNumber.from(1000000000000000000000))) {
+      if (event.args.amount0.gt(BigNumber.from(1000000000000000000000)) || event.args.amount1.gt(BigNumber.from(1000000000000000000000))) {
         findings.push(
           Finding.fromObject({
             name: "Potentially Suspicious Liquidity Pool Creator",
@@ -92,8 +92,8 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddress: st
             type: FindingType.Suspicious,
             metadata: {
               creator: event.address,
-              amount0: event.values.amount0.toString(),
-              amount1: event.values.amount1.toString(),
+              amount0: event.args.amount0.toString(),
+              amount1: event.args.amount1.toString(),
             },
           })
         );
