@@ -1,5 +1,15 @@
-import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent, EntityType } from "forta-agent";
+import {
+  Finding,
+  HandleTransaction,
+  FindingSeverity,
+  FindingType,
+  getEthersProvider,
+  TransactionEvent,
+  EntityType
+} from "forta-agent";
 import { BigNumber, utils } from "ethers";
+
+const ethersProvider = getEthersProvider();
 
 
 const { TOKEN_ADDRESS, SWAP_FACTORY_ADDRESSES, POOLCREATED_EVENT_ABI, PAIRCREATED_EVENT_ABI, ADDLIQUIDITY_EVENT_ABI, BURN_EVENT_ABI } = require("./constants");
@@ -22,7 +32,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
 
       // Check if creator  of pool or pair removes liquidity
       for (const event of poolCreatedEvents || pairCreatedEvents) {
-      const poolAddress = event.args.pool;
+        const poolAddress = event.args.pool;
         const pairAddress = event.args.pair;
         const poolEvents = txEvent.filterLog(ADDLIQUIDITY_EVENT_ABI, poolAddress);
         const pairEvents = txEvent.filterLog(ADDLIQUIDITY_EVENT_ABI, pairAddress);
@@ -31,7 +41,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
         findings.push(
           Finding.fromObject({
             name: "Suspicious Activity By Liquidity Pool Creator",
-            description: `Liquidity pool created by ${event.address} and then removed liquidity`,
+            description: `Liquidity pool created by ${event.address} and then removed liquidity on ${TOKEN_ADDRESS}`,
             alertId: alertId,
             severity: FindingSeverity.High,
             type: FindingType.Exploit,
@@ -47,27 +57,23 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                 entityType: EntityType.Transaction,
                 entity:
                   poolAddress || pairAddress,
-                label: "soft-rug-pull",
+                label: "soft-rug-pull-address",
                 confidence: 0.9,
                 remove: false,
               },
             ],
-            metadata: {
-              creator: event.address,
-              poolAddress: poolAddress || pairAddress,
-            },
           })
         );
       }
     }
 
-    // check if creator takes large amount of token and sell on the token liquidity pool
+    // check to see if the creator takes large amount of token and sell on the token liquidity pool
     for (const event of addLiquidityEvents) {
       if (event.args.amount0.gt(BigNumber.from(1000000000000000000000)) || event.args.amount1.gt(BigNumber.from(1000000000000000000000))) {
         findings.push(
           Finding.fromObject({
-            name: "Potentially Suspicious Liquidity Pool Creator",
-            description: `Liquidity pool created by ${event.address} and then removed liquidity`,
+            name: "Potentially Rug Pull Activity Liquidity Pool Creator",
+            description: `Liquidity pool created by ${event.address} and then removed liquidity on ${TOKEN_ADDRESS}`,
             alertId: alertId,
             severity: FindingSeverity.High,
             type: FindingType.Exploit,

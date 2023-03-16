@@ -11,8 +11,7 @@ import {
   EntityType,
   } from 'forta-agent';
   
-  const {TOKEN_ADDRESS} = require("./constants");
-  const MIN_TRANSACTIONS = 10;
+const { TOKEN_ADDRESS, PAIRCREATED_EVENT_ABI, POOLCREATED_EVENT_ABI, MIN_TRANSACTIONS } = require("./constants");
   
   const ethersProvider = getEthersProvider();
   
@@ -23,10 +22,10 @@ import {
       const findings: Finding[] = [];
   
       const token = new ethers.Contract(TOKEN_ADDRESS, [
-        'event PairCreated(address indexed token0, address indexed token1, uint24 indexed fee, address pool, uint256)'
+        PAIRCREATED_EVENT_ABI, POOLCREATED_EVENT_ABI
       ], ethersProvider);
       const latestBlock = await ethersProvider.getBlockNumber();
-      const events = await token.queryFilter('PairCreated', latestBlock - 700, latestBlock);
+          const events = await token.queryFilter('PairCreated' || 'PoolCreated', latestBlock - 700, latestBlock);
   
       for (const event of events) {
         const tx = await ethersProvider.getTransactionReceipt(event.transactionHash);
@@ -41,7 +40,13 @@ import {
               severity: FindingSeverity.Info,
               type: FindingType.Suspicious,
               labels: [
-                { entityType: EntityType.Address, entity: creator, label: "creator", confidence: 0.6, remove: false },
+                {
+                  entityType: EntityType.Address,
+                  entity: creator,
+                  label: "creator",
+                  confidence: 0.6,
+                  remove: false
+                },
               ],
             })
           );

@@ -1,5 +1,9 @@
 export const TOKEN_ADDRESS = "0xdbdc3f41e7baf3e5b014a3eb91b86f3570ead94c" //sample token address
 
+// minimum number of transactions for a creator to be considered safe
+export const MIN_TRANSACTIONS = 3;
+
+/****************** USEFUL EVENT ABI'S *******************************/
 export const PAIRCREATED_EVENT_ABI: string = "event PairCreated(address indexed token0, address indexed token1, address pair, uint)";
 export const POOLCREATED_EVENT_ABI: string = "event PoolCreated(address indexed token0, address indexed token1, uint24 fee, address pool, uint256)";
 export const NEWPOOL_EVENT_ABI: string = "event NewPool(address indexed token0, address indexed token1, uint24 fee, address pool, uint256)";
