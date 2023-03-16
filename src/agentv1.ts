@@ -1,5 +1,6 @@
-import { HandleTransaction, TransactionEvent, Alert } from 'forta-agent';
+//version of agent that uses the handleAlert function
 
+import { HandleTransaction, TransactionEvent, HandleAlert, AlertEvent, Initialize } from 'forta-agent'
 // Monitor for token creators that are EOA with low reputation
 import creatorMonitorFunctionAgent from "./token.creator.monitor";
 
@@ -7,48 +8,37 @@ import creatorMonitorFunctionAgent from "./token.creator.monitor";
 import liquidityPoolMonitorFunctionAgent from "./liquidity.pool.monitor";
 
 // Monitor for when creator removes liquidity or takes large amount of token and sell on the token liquidity pool
-// import tokenLiquidityMonitorAgent from "./token.liquidity.monitor";
+import tokenLiquidityMonitorFunctionAgent from "./token.liquidity.monitor";
 
-type Agent = {
-  handleTransaction: HandleTransaction;
-};
+// type Agent = {
+//     handleAlert: HandleAlert,
+// }
 
-function provideHandleTransaction(
-    liquidityPoolMonitorFunctionAgent: Agent,
-  creatorMonitorFunctionAgent: Agent,
-//   trackPoolFunctionAgent: Agent,
-) {
-  return async function handleTransaction(
-    txEvent: TransactionEvent,
-  ): Promise<Alert[]> {
-    const alerts: Alert[] = [];
 
-    // Handle alerts from all three agents
-    const creatorMonitorAlerts = await creatorMonitorFunctionAgent.handleTransaction(
-        txEvent,
-      );
-    const liquidityCheckAlerts = await liquidityPoolMonitorFunctionAgent.handleTransaction(
-      txEvent,
-    );
-    // const trackPoolAlerts = await trackPoolFunctionAgent.handleTransaction(
-    //   txEvent,
-    // );
+// function provideHandleAlert(
+//     creatorMonitorFunctionAgent: Agent,
+//     liquidityPoolMonitorFunctionAgent: Agent,
 
-    // alerts.push(
-    //   ...creatorMonitorAlerts,
-    //   ...liquidityCheckAlerts,
-    // //   ...trackPoolAlerts,
-    // );
+//     tokenLiquidityMonitorFunctionAgent: Agent,
+// ): HandleAlert {
 
-    return alerts;
-  };
-}
+//     return async function handleAlert(alertEvent: AlertEvent) {
+//         const alert = alertEvent.alert;
 
-module.exports = {
-  provideHandleTransaction,
-  handleAlerts: provideHandleTransaction(
-    liquidityPoolMonitorFunctionAgent,
-    creatorMonitorFunctionAgent,
-    // trackPoolFunctionAgent,
-  ),
-};
+//         const findings = (await Promise.all([
+//             creatorMonitorFunctionAgent.handleAlert(alertEvent),
+//               liquidityPoolMonitorFunctionAgent.handleAlert(alertEvent),
+//               tokenLiquidityMonitorFunctionAgent.handleAlert(alertEvent)
+//         ])).flat()
+
+//         return findings
+//     }
+// }
+
+// export default {
+//     handleAlert: provideHandleAlert(
+//         creatorMonitorFunctionAgent, 
+//         liquidityPoolMonitorFunctionAgent, 
+//         tokenLiquidityMonitorFunctionAgent
+//     ),
+// }

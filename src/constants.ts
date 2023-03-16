@@ -1,22 +1,36 @@
-export const TOKEN_ADDRESS = "0x801c6f81abf4b3f6471a57fcb8d0b6d867d2c959"
+export const TOKEN_ADDRESS = "0xdbdc3f41e7baf3e5b014a3eb91b86f3570ead94c" //sample token address
 
-export const EVENTS_ABI = [
-    "event Deposit(address indexed user, uint256 indexed pid, uint256 amount)",
-    "event Withdraw(address indexed user, uint256 indexed pid, uint256 amount)",
-    "event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount)",
-    "event PairCreated(address indexed token0, address indexed token1, address pair, uint)",
-    "event PoolCreated(address token0, address token1, uint24 fee, int24 tickSpacing, address pool)",    
-    "function lpToken(uint256 input) public view returns (address token)",
-  ];
+export const PAIRCREATED_EVENT_ABI: string = "event PairCreated(address indexed token0, address indexed token1, address pair, uint)";
+export const POOLCREATED_EVENT_ABI: string = "event PoolCreated(address indexed token0, address indexed token1, uint24 fee, address pool, uint256)";
+export const NEWPOOL_EVENT_ABI: string = "event NewPool(address indexed token0, address indexed token1, uint24 fee, address pool, uint256)";
+export const ADDLIQUIDITY_EVENT_ABI: string = "event Mint(address indexed sender, uint256 amount0, uint256 amount1)";
+export const BURN_EVENT_ABI: string = "event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to)";
+export const DEPOSIT_EVENT_ABI: string = "event Deposit(address indexed sender, uint256 amount0, uint256 amount1)";
+export const WITHDRAW_EVENT_ABI: string = "event Withdraw(address indexed sender, uint256 amount0, uint256 amount1)";
+export const EMERGENCYWITHDRAW_EVENT_ABI: string = "event EmergencyWithdraw(address indexed sender, uint256 amount0, uint256 amount1)";
+export const SWAP_EVENT_ABI: string = "event Swap(address indexed sender, int256 amount0In, int256 amount1In, int256 amount0Out, int256 amount1Out, address indexed to)";
+export const TRANSFER_EVENT_ABI: string = "event Transfer(address indexed from, address indexed to, uint256 value)";
 
-  export const FUNCTIONS_ABI: string[] = [
-    "function token0() public view returns (address)",
-    "function token1() public view returns (address)",
-    "function totalSupply() public view returns (uint256)",
-    "function balanceOf(address account) external view returns (uint256)",
-    "function name() external view returns (string memory)",
-  ];
 
+// Addresses of the Swap v3 Factories for the 7 EVMS
+export const SWAP_FACTORY_ADDRESSES: Record<string, string> = {
+  ethereum: "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f", //uniswap
+  avalanche: "0x794C07912474351b3134E6D6B3B7b3b4A07cbAAa", //uniswap
+  bsc: "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73", //pancakeswap
+  polygon: "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32", //quickswap
+  fantom: "0x514053a5bAa4CfEf80Aa7c2a55d2C8365A5B5EAd", //sushiswap
+  arbitrum: "0x84fBa05A20F09a556eBAbf745d9e5DF5D794A038", //
+  optimism: "0x1F98431c8aD98523631AE4a59f267346ea31F984" // uniswap
+};
+
+//   export const FUNCTIONS_ABI: string[] = [
+//     "function token0() public view returns (address)",
+//     "function token1() public view returns (address)",
+//     "function totalSupply() public view returns (uint256)",
+//     "function balanceOf(address account) external view returns (uint256)",
+//     "function name() external view returns (string memory)",
+//   ];
+// sample rug pull addresses:
 // 0x0c2561d7c8c19e46e0e0fbe02777d2efa424c8e5
 // 0xdbdc3f41e7baf3e5b014a3eb91b86f3570ead94c
 // 0xd8f50c796dc7e0ed6996e9bc2c1e219a5deb0500

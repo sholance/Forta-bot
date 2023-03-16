@@ -8,6 +8,7 @@ import {
     getEthersProvider,
     ethers,
     TransactionEvent,
+  EntityType,
   } from 'forta-agent';
   
   const {TOKEN_ADDRESS} = require("./constants");
@@ -36,13 +37,12 @@ import {
             Finding.fromObject({
               name: "Potentially Suspicious Liquidity Pool Creator",
               description: `Liquidity pool created by ${creator} with only ${creatorTransactions} transactions`,
-              alertId: "SHOLA-2",
+              alertId: "RUG-1",
               severity: FindingSeverity.Info,
               type: FindingType.Suspicious,
-              metadata: {
-                creator,
-                transactions: creatorTransactions.toString(),
-              },
+              labels: [
+                { entityType: EntityType.Address, entity: creator, label: "creator", confidence: 0.6, remove: false },
+              ],
             })
           );
         }
