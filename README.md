@@ -1,28 +1,39 @@
-# Large Tether Transfer Agent
+# Soft Rug Pull Detection Agent
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This agent monitors transactions on the Ethereum network for suspicious activity related to token creators, liquidity pools, and token liquidity
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
+- Avalanche
+- Binance Smart Chain
+- Polygon
+- Fantom
+- Arbitrum
+- Optimism
+
 
 ## Alerts
 
 Describe each of the type of alerts fired by this agent
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+- RUG-1
+  - Fired when a liquidity pools creator is detected to have a low reputation score by tracking the number of transactions they have
+
+- RUG-2
+  - Fired when a liquidity pool is detected to have no other liquidity providers
+
+- RUG-3
+  - Fired when a token creator is detected to have removed liquidity from a liquidity pool
+  - Fired when a token creator is detected to have taken a large amount of token and sold it on the token liquidity pool
+
 
 ## Test Data
 
-The agent behaviour can be verified with the following transactions:
+The agent behaviour can be verified with the following tokens:
 
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
-- Forta@dgreat1
+- 0xdbdc3f41e7baf3e5b014a3eb91b86f3570ead94c (RUG-2)
 
+TODO: Add more test data
