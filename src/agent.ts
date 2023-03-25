@@ -2,7 +2,7 @@ import { HandleTransaction, TransactionEvent } from 'forta-agent'
 // Monitor for token creators that are EOA with low reputation
 import creatorMonitorFunctionAgent from "./token.creator.monitor";
 
-// Monitor liquidity pools for the tracked token to see if no one else deposits liquidity into the pool
+// Monitor all liquidity pools to see if no one else deposits liquidity into the pool
 import liquidityPoolMonitorFunctionAgent from "./liquidity.pool.monitor";
 
 // Monitor for when creator removes liquidity or takes large amount of token and sell on the token liquidity pool
