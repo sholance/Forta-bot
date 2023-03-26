@@ -22,7 +22,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
       const addLiquidityEvents = txEvent.filterLog(ADDLIQUIDITY_EVENT_ABI, trackedTokenAddress);
       let tokenAddress: string | undefined;
       if (pairCreatedEvents.length > 0) {
-        tokenAddress = pairCreatedEvents[0].args.token0.toLowerCase();
+        tokenAddress = pairCreatedEvents[0].args.token0.toLowerCase() || poolCreatedEvents[0].args.token0.toLowerCase() || newPoolEvents[0].args.token0.toLowerCase();
       }
 
       // Checks to see if no one else deposits liquidity in the token's the liquidity pool

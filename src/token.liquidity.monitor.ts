@@ -1,32 +1,29 @@
-import {
-    Finding,
-    HandleTransaction,
-    FindingSeverity,
-    FindingType,
-    getEthersProvider,
-    TransactionEvent,
-    EntityType
-} from "forta-agent";
+import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent, EntityType } from "forta-agent";
 import { BigNumber, utils } from "ethers";
 
-const ethersProvider = getEthersProvider();
+// This is the address of the token and the events in the liquidity contract we're monitoring
+const { TOKEN_ADDRESS, SWAP_FACTORY_ADDRESSES, PAIRCREATED_EVENT_ABI, POOLCREATED_EVENT_ABI, NEWPOOL_EVENT_ABI, ADDLIQUIDITY_EVENT_ABI } = require("./constants");
 
 
-const { SWAP_FACTORY_ADDRESSES, POOLCREATED_EVENT_ABI, PAIRCREATED_EVENT_ABI, ADDLIQUIDITY_EVENT_ABI, BURN_EVENT_ABI } = require("./constants");
-
-// Swap Factory V3 interface with the events
-export const SWAP_FACTORY_IFACE: utils.Interface = new utils.Interface([POOLCREATED_EVENT_ABI, PAIRCREATED_EVENT_ABI, ADDLIQUIDITY_EVENT_ABI, BURN_EVENT_ABI]);
+// Swap Factory V3 interface with the event
+export const SWAP_FACTORY_IFACE: utils.Interface = new utils.Interface([PAIRCREATED_EVENT_ABI, ADDLIQUIDITY_EVENT_ABI]);
 
 // Returns a list of findings (may be empty if no relevant events)
-export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: Record<string, string>): HandleTransaction => {
+export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: Record<string, string>, trackedTokenAddress: string): HandleTransaction => {
     return async (txEvent: TransactionEvent): Promise<Finding[]> => {
         // Initialize the finding array
         let findings: Finding[] = [];
 
-        // Get all relevant events
+        // Get all PairCreated and AddLiquidity events for each EVM
         for (const [evmName, swapFactoryAddress] of Object.entries(swapFactoryAddresses)) {
-            const poolCreatedEvents = txEvent.filterLog(POOLCREATED_EVENT_ABI, swapFactoryAddress);
             const pairCreatedEvents = txEvent.filterLog(PAIRCREATED_EVENT_ABI, swapFactoryAddress);
+            const poolCreatedEvents = txEvent.filterLog(POOLCREATED_EVENT_ABI, swapFactoryAddress);
+            const newPoolEvents = txEvent.filterLog(NEWPOOL_EVENT_ABI, swapFactoryAddress);
+            const addLiquidityEvents = txEvent.filterLog(ADDLIQUIDITY_EVENT_ABI, trackedTokenAddress);
+            let tokenAddress: string | undefined;
+            if (pairCreatedEvents.length > 0) {
+                tokenAddress = pairCreatedEvents[0].args.token0.toLowerCase() || poolCreatedEvents[0].args.token0.toLowerCase() || newPoolEvents[0].args.token0.toLowerCase();
+            }
 
             // Check if creator of pool or pair removes liquidity
             for (const event of poolCreatedEvents || pairCreatedEvents) {
@@ -63,7 +60,6 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     );
                 }
             }
-
             // Check to see if the creator takes large amount of token and sell on the token liquidity pool
             const tokenCreatedEvents = txEvent.filterLog(PAIRCREATED_EVENT_ABI || POOLCREATED_EVENT_ABI);
             for (const event of tokenCreatedEvents) {
@@ -93,16 +89,15 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     }
                 }
             }
-        };
+
+        }
+
         // Return the finding array
         return findings;
-
     };
 };
 
-
-
-// agent function
 export default {
-    handleTransaction: provideHandleTransaction("RUG-3", SWAP_FACTORY_ADDRESSES)
-}
+    handleTransaction: provideHandleTransaction("RUG-3", SWAP_FACTORY_ADDRESSES, TOKEN_ADDRESS),
+};
+

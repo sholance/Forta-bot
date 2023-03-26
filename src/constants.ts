@@ -14,6 +14,13 @@ export const WITHDRAW_EVENT_ABI: string = "event Withdraw(address indexed sender
 export const EMERGENCYWITHDRAW_EVENT_ABI: string = "event EmergencyWithdraw(address indexed sender, uint256 amount0, uint256 amount1)";
 export const SWAP_EVENT_ABI: string = "event Swap(address indexed sender, int256 amount0In, int256 amount1In, int256 amount0Out, int256 amount1Out, address indexed to)";
 export const TRANSFER_EVENT_ABI: string = "event Transfer(address indexed from, address indexed to, uint256 value)";
+export const APPROVAL_EVENT_ABI: string = "event Approval(address indexed owner, address indexed spender, uint256 value)";
+export const MINT_EVENT_ABI: string = "event Mint(address indexed to, uint256 value)";
+export const SYNC_EVENT_ABI: string = "event Sync(uint112 reserve0, uint112 reserve1)";
+export const REMOVELIQUIDITY_EVENT_ABI: string = "event RemoveLiquidity(address indexed provider, uint256 indexed token0, uint256 indexed token1, uint256 liquidity, uint256 amount0, uint256 amount1)";
+export const CONTRACT_CREATION_EVENT_ABI: string = "event ContractCreated(address indexed creator, address indexed contractAddress)";
+
+
 
 
 // Addresses of the Swap v3 Factories for the 7 EVMS
