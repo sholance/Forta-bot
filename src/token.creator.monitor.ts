@@ -2,14 +2,14 @@ import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEv
 import { utils } from "ethers";
 
 // This is the address of the token and the events in the liquidity contract we're monitoring
-const { TOKEN_ADDRESS, SWAP_FACTORY_ADDRESSES, PAIRCREATED_EVENT_ABI, POOLCREATED_EVENT_ABI, NEWPOOL_EVENT_ABI, ADDLIQUIDITY_EVENT_ABI, MIN_TRANSACTIONS, TRANSFER_EVENT_ABI, APPROVAL_EVENT_ABI, MINT_EVENT_ABI, BURN_EVENT_ABI } = require("./constants");
+const { SWAP_FACTORY_ADDRESSES, PAIRCREATED_EVENT_ABI, POOLCREATED_EVENT_ABI, NEWPOOL_EVENT_ABI, ADDLIQUIDITY_EVENT_ABI, MIN_TRANSACTIONS, TRANSFER_EVENT_ABI, APPROVAL_EVENT_ABI, MINT_EVENT_ABI, BURN_EVENT_ABI } = require("./constants");
 
 
 // Swap Factory V3 interface with the event
 export const SWAP_FACTORY_IFACE: utils.Interface = new utils.Interface([PAIRCREATED_EVENT_ABI, ADDLIQUIDITY_EVENT_ABI]);
 
 // Returns a list of findings (may be empty if no relevant events)
-export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: Record<string, string>, trackedTokenAddress: string): HandleTransaction => {
+export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: Record<string, string>): HandleTransaction => {
     return async (txEvent: TransactionEvent): Promise<Finding[]> => {
         // Initialize the finding array
         let findings: Finding[] = [];
@@ -63,5 +63,5 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
 };
 
 export default {
-    handleTransaction: provideHandleTransaction("RUG-1", SWAP_FACTORY_ADDRESSES, TOKEN_ADDRESS),
+    handleTransaction: provideHandleTransaction("RUG-1", SWAP_FACTORY_ADDRESSES),
 };

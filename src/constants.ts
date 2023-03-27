@@ -19,7 +19,7 @@ export const MINT_EVENT_ABI: string = "event Mint(address indexed to, uint256 va
 export const SYNC_EVENT_ABI: string = "event Sync(uint112 reserve0, uint112 reserve1)";
 export const REMOVELIQUIDITY_EVENT_ABI: string = "event RemoveLiquidity(address indexed provider, uint256 indexed token0, uint256 indexed token1, uint256 liquidity, uint256 amount0, uint256 amount1)";
 export const CONTRACT_CREATION_EVENT_ABI: string = "event ContractCreated(address indexed creator, address indexed contractAddress)";
-
+export const REMOVELIQUIDITYIMBALANCE_EVENT_ABI: string = "event RemoveLiquidityImbalance(address,uint256[3],uint256[3],uint256,uint256)";
 
 
 
@@ -34,13 +34,14 @@ export const SWAP_FACTORY_ADDRESSES: Record<string, string> = {
   optimism: "0x1F98431c8aD98523631AE4a59f267346ea31F984" // uniswap
 };
 
-//   export const FUNCTIONS_ABI: string[] = [
-//     "function token0() public view returns (address)",
-//     "function token1() public view returns (address)",
-//     "function totalSupply() public view returns (uint256)",
-//     "function balanceOf(address account) external view returns (uint256)",
-//     "function name() external view returns (string memory)",
-//   ];
+export const FUNCTIONS_ABI: string[] = [
+  "function token0() public view returns (address)",
+  "function token1() public view returns (address)",
+  "function totalSupply() public view returns (uint256)",
+  "function balanceOf(address account) external view returns (uint256)",
+];
+
+
 // sample rug pull addresses:
 // 0x0c2561d7c8c19e46e0e0fbe02777d2efa424c8e5
 // 0xdbdc3f41e7baf3e5b014a3eb91b86f3570ead94c

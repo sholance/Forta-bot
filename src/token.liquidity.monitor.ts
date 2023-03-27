@@ -1,8 +1,9 @@
 import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent, EntityType } from "forta-agent";
 import { BigNumber, utils } from "ethers";
+import { createAddress } from "forta-agent-tools";
 
 // This is the address of the token and the events in the liquidity contract we're monitoring
-const { TOKEN_ADDRESS, SWAP_FACTORY_ADDRESSES, PAIRCREATED_EVENT_ABI, POOLCREATED_EVENT_ABI, NEWPOOL_EVENT_ABI, ADDLIQUIDITY_EVENT_ABI } = require("./constants");
+const { TOKEN_ADDRESS, SWAP_FACTORY_ADDRESSES, PAIRCREATED_EVENT_ABI, POOLCREATED_EVENT_ABI, NEWPOOL_EVENT_ABI, ADDLIQUIDITY_EVENT_ABI, REMOVELIQUIDITYIMBALANCE_EVENT_ABI, REMOVELIQUIDITY_EVENT_ABI, BURN_EVENT_ABI, TRANSFER_EVENT_ABI } = require("./constants");
 
 
 // Swap Factory V3 interface with the event
@@ -19,38 +20,40 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
             const pairCreatedEvents = txEvent.filterLog(PAIRCREATED_EVENT_ABI, swapFactoryAddress);
             const poolCreatedEvents = txEvent.filterLog(POOLCREATED_EVENT_ABI, swapFactoryAddress);
             const newPoolEvents = txEvent.filterLog(NEWPOOL_EVENT_ABI, swapFactoryAddress);
-            const addLiquidityEvents = txEvent.filterLog(ADDLIQUIDITY_EVENT_ABI, trackedTokenAddress);
-            let tokenAddress: string | undefined;
-            if (pairCreatedEvents.length > 0) {
-                tokenAddress = pairCreatedEvents[0].args.token0.toLowerCase() || poolCreatedEvents[0].args.token0.toLowerCase() || newPoolEvents[0].args.token0.toLowerCase();
-            }
+            const removeLiquidityEvent = txEvent.filterLog(REMOVELIQUIDITY_EVENT_ABI, trackedTokenAddress);
+            const burnEvent = txEvent.filterLog(BURN_EVENT_ABI, trackedTokenAddress);
+            const mintEvent = txEvent.filterLog(TRANSFER_EVENT_ABI, trackedTokenAddress);
 
             // Check if creator of pool or pair removes liquidity
-            for (const event of poolCreatedEvents || pairCreatedEvents) {
-                const poolAddress = event.args.pool;
-                const pairAddress = event.args.pair;
-                const poolEvents = txEvent.filterLog(ADDLIQUIDITY_EVENT_ABI, poolAddress);
-                const pairEvents = txEvent.filterLog(ADDLIQUIDITY_EVENT_ABI, pairAddress);
+            for (const event of [...poolCreatedEvents, ...pairCreatedEvents, ...newPoolEvents]) {
+                let tokenAddress: string | undefined;
+                if ("token0" in event.args) {
+                    tokenAddress = event.args.token0.toLowerCase();
+                }
+                let creatorAddress: string | undefined;
+                if (event.args && event.args.sender) {
+                    creatorAddress = event.args.sender.toLowerCase();
+                }
 
-                if (poolEvents.length > 0 || pairEvents.length > 0) {
+                if (removeLiquidityEvent.length === 0 && (pairCreatedEvents.length > 0 || poolCreatedEvents.length > 0 || newPoolEvents.length > 0)) {
                     findings.push(
                         Finding.fromObject({
                             name: "Suspicious Activity By Liquidity Pool Creator",
-                            description: `Liquidity pool created by ${event.address} and then removed liquidity`,
+                            description: `Liquidity pool created by ${creatorAddress} and then removed liquidity on ${evmName}`,
                             alertId: alertId,
                             severity: FindingSeverity.High,
                             type: FindingType.Exploit,
                             labels: [
                                 {
                                     entityType: EntityType.Address,
-                                    entity: event.address,
+                                    entity: creatorAddress || '',
                                     label: "attacker",
                                     confidence: 0.9,
                                     remove: false,
                                 },
                                 {
                                     entityType: EntityType.Transaction,
-                                    entity: poolAddress || pairAddress,
+                                    entity: tokenAddress || '',
                                     label: "soft-rug-pull-address",
                                     confidence: 0.9,
                                     remove: false,
@@ -60,35 +63,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     );
                 }
             }
-            // Check to see if the creator takes large amount of token and sell on the token liquidity pool
-            const tokenCreatedEvents = txEvent.filterLog(PAIRCREATED_EVENT_ABI || POOLCREATED_EVENT_ABI);
-            for (const event of tokenCreatedEvents) {
-                const tokenAddress = event.args.token;
-                const addLiquidityEvents = txEvent.filterLog(ADDLIQUIDITY_EVENT_ABI, tokenAddress);
-
-                for (const addLiquidityEvent of addLiquidityEvents) {
-                    if (addLiquidityEvent.args.amount0.gt(BigNumber.from(1000000000000000000000)) || addLiquidityEvent.args.amount1.gt(BigNumber.from(1000000000000000000000))) {
-                        findings.push(
-                            Finding.fromObject({
-                                name: "Potentially Rug Pull Activity Liquidity Pool Creator",
-                                description: `Token ${tokenAddress} was created and large amount of tokens were sold on the liquidity pool`,
-                                alertId: alertId,
-                                severity: FindingSeverity.High,
-                                type: FindingType.Exploit,
-                                labels: [
-                                    {
-                                        entityType: EntityType.Address,
-                                        entity: event.address,
-                                        label: "attacker",
-                                        confidence: 0.9,
-                                        remove: false,
-                                    },
-                                ],
-                            })
-                        );
-                    }
-                }
-            }
+            // TODO FUNCTION TO check if creator takes large amount of token and sell on the token liquidity pool
 
         }
 
