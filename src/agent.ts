@@ -13,15 +13,15 @@ type Agent = {
 }
 
 function provideHandleTransaction(
-  // creatorMonitorFunctionAgent: Agent,
-  // liquidityPoolMonitorFunctionAgent: Agent,
+  creatorMonitorFunctionAgent: Agent,
+  liquidityPoolMonitorFunctionAgent: Agent,
   tokenLiquidityMonitorFunctionAgent: Agent,
 ): HandleTransaction {
 
   return async function handleTransaction(txEvent: TransactionEvent) {
     const findings = (await Promise.all([
-      // creatorMonitorFunctionAgent.handleTransaction(txEvent),
-      // liquidityPoolMonitorFunctionAgent.handleTransaction(txEvent),
+      creatorMonitorFunctionAgent.handleTransaction(txEvent),
+      liquidityPoolMonitorFunctionAgent.handleTransaction(txEvent),
       tokenLiquidityMonitorFunctionAgent.handleTransaction(txEvent)
     ])).flat()
 
@@ -31,8 +31,8 @@ function provideHandleTransaction(
 
 export default {
   handleTransaction: provideHandleTransaction(
-    // creatorMonitorFunctionAgent,
-    // liquidityPoolMonitorFunctionAgent,
+    creatorMonitorFunctionAgent,
+    liquidityPoolMonitorFunctionAgent,
     tokenLiquidityMonitorFunctionAgent
   ),
 }
