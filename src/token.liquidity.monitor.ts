@@ -41,7 +41,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                             name: "Suspicious Activity By Liquidity Pool Creator",
                             description: `Liquidity pool created by ${creatorAddress} and then removed liquidity on ${evmName}`,
                             alertId: alertId,
-                            severity: FindingSeverity.High,
+                            severity: FindingSeverity.Info,
                             type: FindingType.Exploit,
                             labels: [
                                 {
