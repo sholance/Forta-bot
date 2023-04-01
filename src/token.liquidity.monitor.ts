@@ -70,7 +70,6 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     const block = txEvent.blockNumber;
                     const [valid, token0, token1, totalSupply] = await fetcher.getPoolData(block - 1, log.address);
 
-
                     // const createdPair = createPair(token0, token1, swapFactoryAddress);
                     if (valid && totalSupply.gt(0)) {
                         const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, log.address, token0, token1);
