@@ -26,9 +26,16 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
 
             // Check if creator of pool or pair removes liquidity
             for (const event of [...poolCreatedEvents, ...pairCreatedEvents, ...newPoolEvents]) {
+                let tokenAddress;
+                if ("token0" in event.args) {
+                    tokenAddress = event.args.token0.toLowerCase();
+                }
+                let creatorAddress;
+                if (event.args && event.args.sender) {
+                    creatorAddress = event.args.sender.toLowerCase();
+                }
+
                 if (removeLiquidityEvent.length === 0 && (pairCreatedEvents.length > 0 || poolCreatedEvents.length > 0 || newPoolEvents.length > 0)) {
-                    const creatorAddress: string = event.args.sender.toLowerCase();
-                    const tokenAddress: string = event.address.toLowerCase();
                     try {
                         findings.push(
                             Finding.fromObject({
@@ -57,7 +64,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                             })
                         )
                     } catch (error) {
-                        console.log(error);
+                        console.log(error)
                     }
                 }
 
@@ -68,9 +75,17 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                 logs.map(async (log) => {
                     const block = txEvent.blockNumber;
                     const [valid, token0, token1, totalSupply] = await fetcher.getPoolData(block - 1, log.address);
+                    let tokenAddress;
+                    if ("token0" in log.args) {
+                        tokenAddress = log.args.token0.toLowerCase();
+                    }
+                    let creatorAddress;
+                    if (log.args && log.args.sender) {
+                        creatorAddress = log.args.sender.toLowerCase();
+                    }
 
                     // const createdPair = createPair(token0, token1, swapFactoryAddress);
-                    if (valid && totalSupply.gt(0)) {
+                    if (valid) {
                         const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, log.address, token0, token1);
                         const amount0: BigNumber = BigNumber.from(log.args.amount0);
                         const amount1: BigNumber = BigNumber.from(log.args.amount1);
