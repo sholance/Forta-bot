@@ -12,6 +12,7 @@ export const SWAP_FACTORY_IFACE: utils.Interface = new utils.Interface([PAIRCREA
 export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: Record<string, string>): HandleTransaction => {
     return async (txEvent: TransactionEvent): Promise<Finding[]> => {
         // Initialize the finding array
+        try {
         let findings: Finding[] = [];
 
         // Get all PairCreated and AddLiquidity events for each EVM
@@ -57,7 +58,11 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
 
         // Return the finding array
         return findings;
+        } catch (error) {
+            console.log(error);
+            return [];
     };
+    }
 };
 
 export default {
