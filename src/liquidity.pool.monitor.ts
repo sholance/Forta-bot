@@ -11,7 +11,7 @@ export const SWAP_FACTORY_IFACE: utils.Interface = new utils.Interface([PAIRCREA
 // Returns a list of findings (may be empty if no relevant events)
 export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: Record<string, string>, trackedTokenAddress: string): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    // Initialize the finding array
+    try { // Initialize the finding array
     let findings: Finding[] = [];
 
     // Get all PairCreated and AddLiquidity events for each EVM
@@ -20,24 +20,23 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
       const poolCreatedEvents = txEvent.filterLog(POOLCREATED_EVENT_ABI, swapFactoryAddress);
       const newPoolEvents = txEvent.filterLog(NEWPOOL_EVENT_ABI, swapFactoryAddress);
       const addLiquidityEvents = txEvent.filterLog(ADDLIQUIDITY_EVENT_ABI, trackedTokenAddress);
-      let tokenAddress: string | undefined;
-      if (pairCreatedEvents.length > 0) {
-        tokenAddress = pairCreatedEvents[0].args.token0.toLowerCase() || poolCreatedEvents[0].args.token0.toLowerCase() || newPoolEvents[0].args.token0.toLowerCase();
-      }
 
       // Checks to see if no one else deposits liquidity in the token's the liquidity pool
       if (addLiquidityEvents.length === 0 && (pairCreatedEvents.length > 0 || poolCreatedEvents.length > 0 || newPoolEvents.length > 0)) {
+        const tokenAddress: string = pairCreatedEvents[0].args.token0.toLowerCase() || poolCreatedEvents[0].args.token0.toLowerCase() || newPoolEvents[0].args.token0.toLowerCase();
+
         findings.push(
           Finding.fromObject({
             name: `No Liquidity Deposits in ${tokenAddress}`,
-            description: `No one has deposited liquidity into the pool for the tracked token on ${evmName}`,
+            description: `No one has deposited liquidity into the pool for the tracked`,
             alertId: alertId,
             severity: FindingSeverity.Medium,
             type: FindingType.Suspicious,
+            protocol: `${evmName}`,
             labels: [
               {
                 entityType: EntityType.Address,
-                entity: tokenAddress || '',
+                entity: tokenAddress,
                 label: "token-address",
                 confidence: 0.8,
                 remove: false,
@@ -57,10 +56,14 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
 
     // Return the finding array
     return findings;
-  };
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  }
 };
 
 export default {
-  handleTransaction: provideHandleTransaction("RUG-2", SWAP_FACTORY_ADDRESSES, TOKEN_ADDRESS),
+  handleTransaction: provideHandleTransaction("SOFT-RUG-PULL-SUS-LIQ-POOL-RESERVE-CHANGE", SWAP_FACTORY_ADDRESSES, TOKEN_ADDRESS),
 };
 

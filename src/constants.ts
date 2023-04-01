@@ -20,6 +20,14 @@ export const SYNC_EVENT_ABI: string = "event Sync(uint112 reserve0, uint112 rese
 export const REMOVELIQUIDITY_EVENT_ABI: string = "event RemoveLiquidity(address indexed provider, uint256 indexed token0, uint256 indexed token1, uint256 liquidity, uint256 amount0, uint256 amount1)";
 export const CONTRACT_CREATION_EVENT_ABI: string = "event ContractCreated(address indexed creator, address indexed contractAddress)";
 export const REMOVELIQUIDITYIMBALANCE_EVENT_ABI: string = "event RemoveLiquidityImbalance(address,uint256[3],uint256[3],uint256,uint256)";
+export const ERC20ABI = ["function balanceOf(address account) public view returns (uint256)"];
+export const PAIR_ABI = [
+  "function token0() external view returns (address)",
+  "function token1() external view returns (address)",
+];
+export const INIT_CODE_PAIR_HASH = "0x00fb7f630766e6a796048ea87d01acd3068e8ff67d078148a3fa3f4a84f69bd5";
+export const SWAP_EVENT =
+  "event Swap(address indexed sender, uint amount0In, uint amount1In, uint amount0Out,uint amount1Out,address indexed to)";
 
 
 
@@ -29,9 +37,9 @@ export const SWAP_FACTORY_ADDRESSES: Record<string, string> = {
   avalanche: "0x794C07912474351b3134E6D6B3B7b3b4A07cbAAa", //uniswap
   bsc: "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73", //pancakeswap
   polygon: "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32", //quickswap
-  fantom: "0x514053a5bAa4CfEf80Aa7c2a55d2C8365A5B5EAd", //sushiswap
-  arbitrum: "0x84fBa05A20F09a556eBAbf745d9e5DF5D794A038", //
-  optimism: "0x1F98431c8aD98523631AE4a59f267346ea31F984" // uniswap
+  fantom: "0x514053a5bAa4CFef80aA7C2A55d2c8365a5B5eAd", //sushiswap
+  arbitrum: "0x84FBa05a20f09a556EBAbf745D9E5df5d794a038", // Uniswap
+  optimism: "0x1F98431c8aD98523631AE4a59f267346ea31F984" // Uniswap
 };
 
 export const FUNCTIONS_ABI: string[] = [
@@ -39,6 +47,11 @@ export const FUNCTIONS_ABI: string[] = [
   "function token1() public view returns (address)",
   "function totalSupply() public view returns (uint256)",
   "function balanceOf(address account) external view returns (uint256)",
+];
+
+export const EVENTS_ABI: string[] = [
+  "event Mint(address indexed sender, uint amount0, uint amount1)",
+  "event Burn(address indexed sender, uint amount0, uint amount1, address indexed to)",
 ];
 
 

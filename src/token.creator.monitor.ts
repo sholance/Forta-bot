@@ -28,10 +28,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                 if ("token0" in event.args) {
                     tokenAddress = event.args.token0.toLowerCase();
                 }
-                let creatorAddress: string | undefined;
-                if (event.args && event.args.sender) {
-                    creatorAddress = event.args.sender.toLowerCase();
-                }
+                const creatorAddress: string = event.args.creator.toLowerCase();
                 const creatorTransactions = txEvent.filterLog(allEvents, tokenAddress)
                 if (creatorTransactions.length < MIN_TRANSACTIONS) {
                     findings.push(
@@ -41,11 +38,12 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                 alertId: alertId,
                                 severity: FindingSeverity.Info,
                                 type: FindingType.Suspicious,
+                            protocol: `${evmName}`,
                                 labels: [
                                     {
                                         entityType: EntityType.Address,
-                                        entity: creatorAddress || "",
-                                        label: 'creator',
+                                        entity: creatorAddress,
+                                        label: 'attacker',
                                         confidence: 0.6,
                                         remove: false,
                                     },
@@ -63,5 +61,5 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
 };
 
 export default {
-    handleTransaction: provideHandleTransaction("RUG-1", SWAP_FACTORY_ADDRESSES),
+    handleTransaction: provideHandleTransaction("SOFT-RUG-PULL-SUS-LIQ-POOL-CREATION", SWAP_FACTORY_ADDRESSES),
 };
