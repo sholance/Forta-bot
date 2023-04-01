@@ -60,7 +60,6 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
   };
 };
 
-
 export default {
   handleTransaction: provideHandleTransaction("SOFT-RUG-PULL-SUS-LIQ-POOL-RESERVE-CHANGE", SWAP_FACTORY_ADDRESSES, TOKEN_ADDRESS),
 };

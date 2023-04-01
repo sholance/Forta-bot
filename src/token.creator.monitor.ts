@@ -21,6 +21,8 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
             const newPoolEvents = txEvent.filterLog(NEWPOOL_EVENT_ABI, swapFactoryAddress);
             const allEvents = [TRANSFER_EVENT_ABI, APPROVAL_EVENT_ABI, MINT_EVENT_ABI, BURN_EVENT_ABI];
 
+
+
             for (const event of [...poolCreatedEvents, ...pairCreatedEvents, ...newPoolEvents]) {
                 let tokenAddress: string | undefined;
                 if ("token0" in event.args) {
