@@ -11,7 +11,7 @@ export const SWAP_FACTORY_IFACE: utils.Interface = new utils.Interface([PAIRCREA
 // Returns a list of findings (may be empty if no relevant events)
 export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: Record<string, string>, trackedTokenAddress: string): HandleTransaction => {
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
-    try { // Initialize the finding array
+    // Initialize the finding array
     let findings: Finding[] = [];
 
     // Get all PairCreated and AddLiquidity events for each EVM
@@ -24,7 +24,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
       // Checks to see if no one else deposits liquidity in the token's the liquidity pool
       if (addLiquidityEvents.length === 0 && (pairCreatedEvents.length > 0 || poolCreatedEvents.length > 0 || newPoolEvents.length > 0)) {
         const tokenAddress: string = pairCreatedEvents[0].args.token0.toLowerCase() || poolCreatedEvents[0].args.token0.toLowerCase() || newPoolEvents[0].args.token0.toLowerCase();
-
+        try {
         findings.push(
           Finding.fromObject({
             name: `No Liquidity Deposits in ${tokenAddress}`,
@@ -51,15 +51,15 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
             ],
           })
         );
+        } catch (error) {
+          console.log(error);
+        }
+
       }
     }
 
     // Return the finding array
     return findings;
-    } catch (error) {
-      console.error(error);
-      return [];
-    }
   }
 };
 

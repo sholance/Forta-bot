@@ -12,7 +12,6 @@ export const SWAP_FACTORY_IFACE: utils.Interface = new utils.Interface([PAIRCREA
 export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: Record<string, string>): HandleTransaction => {
     return async (txEvent: TransactionEvent): Promise<Finding[]> => {
         // Initialize the finding array
-        try {
         let findings: Finding[] = [];
 
         // Get all PairCreated and AddLiquidity events for each EVM
@@ -22,14 +21,15 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
             const newPoolEvents = txEvent.filterLog(NEWPOOL_EVENT_ABI, swapFactoryAddress);
             const allEvents = [TRANSFER_EVENT_ABI, APPROVAL_EVENT_ABI, MINT_EVENT_ABI, BURN_EVENT_ABI];
 
-
-
             for (const event of [...poolCreatedEvents, ...pairCreatedEvents, ...newPoolEvents]) {
                 let tokenAddress: string | undefined;
                 if ("token0" in event.args) {
                     tokenAddress = event.args.token0.toLowerCase();
                 }
-                const creatorAddress: string = event.args.creator.toLowerCase();
+                let creatorAddress: string | undefined;
+                if (event.args && event.args.sender) {
+                    creatorAddress = event.args.sender.toLowerCase();
+                }
                 const creatorTransactions = txEvent.filterLog(allEvents, tokenAddress)
                 if (creatorTransactions.length < MIN_TRANSACTIONS) {
                     findings.push(
@@ -38,13 +38,12 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                 description: `Pool created by creator with only ${creatorTransactions.length} transactions`,
                                 alertId: alertId,
                                 severity: FindingSeverity.Info,
-                                type: FindingType.Suspicious,
-                            protocol: `${evmName}`,
+                            type: FindingType.Suspicious,
                                 labels: [
                                     {
                                         entityType: EntityType.Address,
-                                        entity: creatorAddress,
-                                        label: 'attacker',
+                                        entity: creatorAddress!,
+                                        label: 'creator',
                                         confidence: 0.6,
                                         remove: false,
                                     },
@@ -58,11 +57,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
 
         // Return the finding array
         return findings;
-        } catch (error) {
-            console.log(error);
-            return [];
     };
-    }
 };
 
 export default {

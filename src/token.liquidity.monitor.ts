@@ -29,8 +29,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                 if (removeLiquidityEvent.length === 0 && (pairCreatedEvents.length > 0 || poolCreatedEvents.length > 0 || newPoolEvents.length > 0)) {
                     const creatorAddress: string = event.args.sender.toLowerCase();
                     const tokenAddress: string = event.address.toLowerCase();
-
-                    await Promise.resolve(
+                    try {
                         findings.push(
                             Finding.fromObject({
                                 name: "Suspicious Activity in Liquidity Pool",
@@ -57,9 +56,9 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                 ],
                             })
                         )
-                    ).catch((error: any) => {
-                        console.log(error)
-                    })
+                    } catch (error) {
+                        console.log(error);
+                    }
                 }
 
             }
