@@ -1,4 +1,4 @@
-import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent, EntityType, getTransactionReceipt } from "forta-agent";
+import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent, EntityType } from "forta-agent";
 import { utils } from "ethers";
 
 // This is the address of the token and the events in the liquidity contract we're monitoring
