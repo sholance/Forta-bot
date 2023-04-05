@@ -37,7 +37,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
             labels: [
               {
                 entityType: EntityType.Address,
-                entity: tokenAddress || '',
+                entity: tokenAddress!,
                 label: "token-address",
                 confidence: 0.8,
                 remove: false,
@@ -61,6 +61,6 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
 };
 
 export default {
-  handleTransaction: provideHandleTransaction("RUG-2", SWAP_FACTORY_ADDRESSES, TOKEN_ADDRESS),
+  handleTransaction: provideHandleTransaction("SOFT-RUG-PULL-SUS-LIQ-POOL-RESERVE-CHANGE", SWAP_FACTORY_ADDRESSES, TOKEN_ADDRESS),
 };
 

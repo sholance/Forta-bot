@@ -3,6 +3,7 @@ export const TOKEN_ADDRESS = "0xdbdc3f41e7baf3e5b014a3eb91b86f3570ead94c" //samp
 // minimum number of transactions for a creator to be considered safe
 export const MIN_TRANSACTIONS = 3;
 
+
 /****************** USEFUL EVENT ABI'S *******************************/
 export const PAIRCREATED_EVENT_ABI: string = "event PairCreated(address indexed token0, address indexed token1, address pair, uint)";
 export const POOLCREATED_EVENT_ABI: string = "event PoolCreated(address indexed token0, address indexed token1, uint24 fee, address pool, uint256)";
@@ -20,7 +21,12 @@ export const SYNC_EVENT_ABI: string = "event Sync(uint112 reserve0, uint112 rese
 export const REMOVELIQUIDITY_EVENT_ABI: string = "event RemoveLiquidity(address indexed provider, uint256 indexed token0, uint256 indexed token1, uint256 liquidity, uint256 amount0, uint256 amount1)";
 export const CONTRACT_CREATION_EVENT_ABI: string = "event ContractCreated(address indexed creator, address indexed contractAddress)";
 export const REMOVELIQUIDITYIMBALANCE_EVENT_ABI: string = "event RemoveLiquidityImbalance(address,uint256[3],uint256[3],uint256,uint256)";
-
+export const ERC20ABI = ["function balanceOf(address account) public view returns (uint256)"];
+export const PAIR_ABI = [
+  "function token0() external view returns (address)",
+  "function token1() external view returns (address)",
+];
+export const INIT_CODE_PAIR_HASH = "0x00fb7f630766e6a796048ea87d01acd3068e8ff67d078148a3fa3f4a84f69bd5";
 
 
 // Addresses of the Swap v3 Factories for the 7 EVMS
