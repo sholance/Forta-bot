@@ -15,6 +15,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
     return async (txEvent: TransactionEvent): Promise<Finding[]> => {
         // Initialize the finding array
         let findings: Finding[] = [];
+        const fetcher = new PoolFetcher(getEthersProvider());
 
         // Get all PairCreated and AddLiquidity events for each EVM
         for (const [evmName, swapFactoryAddress] of Object.entries(swapFactoryAddresses)) {
@@ -28,12 +29,16 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                 if ("token0" in event.args) {
                     tokenAddress = event.args.token0.toLowerCase();
                 }
-                let creatorAddress: string | undefined;
-                if (event.args && event.args.sender) {
-                    creatorAddress = event.args.sender.toLowerCase();
-                }
+                // let creatorAddress: string | undefined;
+                // if (event.args && event.args.sender) {
+                //     creatorAddress = event.args.sender.toLowerCase();
+                // }
+                let transaction = txEvent.transaction;
+                let creatorAddress = transaction.from;
 
                 if (removeLiquidityEvent.length === 0 && (pairCreatedEvents.length > 0 || poolCreatedEvents.length > 0 || newPoolEvents.length > 0)) {
+                    const tokenSymbol = await fetcher.getTokenSymbol(event.address); // Get token symbol using custom function
+
                     try {
                         findings.push(
                             Finding.fromObject({
@@ -45,7 +50,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                 labels: [
                                     {
                                         entityType: EntityType.Address,
-                                        entity: creatorAddress!,
+                                        entity: creatorAddress,
                                         label: "attacker",
                                         confidence: 0.9,
                                         remove: false,
@@ -57,7 +62,17 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                         confidence: 0.9,
                                         remove: false,
                                     },
+
                                 ],
+                                metadata: {
+                                    tokenSymbol: JSON.stringify(tokenSymbol),
+                                    attacker_address: JSON.stringify(transaction.from),
+                                    transaction: JSON.stringify(transaction.hash),
+                                    tokenAddress: tokenAddress!,
+                                    contractAddress: JSON.stringify(event.address),
+                                    event: JSON.stringify(event.name),
+                                    poolAddress: JSON.stringify(event.args.pool0 && event.args.pool1),
+                                },
                             })
                         );
                     } catch (error) {

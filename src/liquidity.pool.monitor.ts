@@ -1,5 +1,6 @@
-import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent, EntityType } from "forta-agent";
+import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent, EntityType, getEthersProvider, LogDescription } from "forta-agent";
 import { utils } from "ethers";
+import { PoolFetcher } from "./utils";
 
 // This is the address of the token and the events in the liquidity contract we're monitoring
 const { TOKEN_ADDRESS, SWAP_FACTORY_ADDRESSES, PAIRCREATED_EVENT_ABI, POOLCREATED_EVENT_ABI, NEWPOOL_EVENT_ABI, ADDLIQUIDITY_EVENT_ABI } = require("./constants");
@@ -13,6 +14,8 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
   return async (txEvent: TransactionEvent): Promise<Finding[]> => {
     // Initialize the finding array
     let findings: Finding[] = [];
+    let fetcher = new PoolFetcher(getEthersProvider());
+    // const log: LogDescription[] = txEvent.filterLog(PAIRCREATED_EVENT_ABI);
 
     // Get all PairCreated and AddLiquidity events for each EVM
     for (const [evmName, swapFactoryAddress] of Object.entries(swapFactoryAddresses)) {
@@ -24,9 +27,10 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
       if (pairCreatedEvents.length > 0) {
         tokenAddress = pairCreatedEvents[0].args.token0.toLowerCase() || poolCreatedEvents[0].args.token0.toLowerCase() || newPoolEvents[0].args.token0.toLowerCase();
       }
-
+      let transaction = txEvent.transaction;
       // Checks to see if no one else deposits liquidity in the token's the liquidity pool
       if (addLiquidityEvents.length === 0 && (pairCreatedEvents.length > 0 || poolCreatedEvents.length > 0 || newPoolEvents.length > 0)) {
+        const tokenSymbol = await fetcher.getTokenSymbol(tokenAddress!); // Get token symbol using custom function
         findings.push(
           Finding.fromObject({
             name: `No Liquidity Deposits in ${tokenAddress}`,
@@ -50,6 +54,14 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                 remove: false,
               }
             ],
+            metadata: {
+              tokenSymbol: JSON.stringify(tokenSymbol),
+              attackerAddress: JSON.stringify(transaction.from),
+              transaction: JSON.stringify(transaction.hash),
+              tokenAddress: tokenAddress!,
+              contractAddress: JSON.stringify(transaction.to),
+              deployer: JSON.stringify(transaction.from),
+            },
           })
         );
       }

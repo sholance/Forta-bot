@@ -1,5 +1,6 @@
-import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent, EntityType } from "forta-agent";
+import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent, EntityType, getEthersProvider } from "forta-agent";
 import { utils } from "ethers";
+import { PoolFetcher } from "./utils";
 
 // This is the address of the token and the events in the liquidity contract we're monitoring
 const { SWAP_FACTORY_ADDRESSES, PAIRCREATED_EVENT_ABI, POOLCREATED_EVENT_ABI, NEWPOOL_EVENT_ABI, ADDLIQUIDITY_EVENT_ABI, MIN_TRANSACTIONS, TRANSFER_EVENT_ABI, APPROVAL_EVENT_ABI, MINT_EVENT_ABI, BURN_EVENT_ABI } = require("./constants");
@@ -13,6 +14,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
     return async (txEvent: TransactionEvent): Promise<Finding[]> => {
         // Initialize the finding array
         let findings: Finding[] = [];
+        let fetcher = new PoolFetcher(getEthersProvider());
 
         // Get all PairCreated and AddLiquidity events for each EVM
         for (const [evmName, swapFactoryAddress] of Object.entries(swapFactoryAddresses)) {
@@ -20,6 +22,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
             const poolCreatedEvents = txEvent.filterLog(POOLCREATED_EVENT_ABI, swapFactoryAddress);
             const newPoolEvents = txEvent.filterLog(NEWPOOL_EVENT_ABI, swapFactoryAddress);
             const allEvents = [TRANSFER_EVENT_ABI, APPROVAL_EVENT_ABI, MINT_EVENT_ABI, BURN_EVENT_ABI];
+            let transaction = txEvent.transaction;
 
 
 
@@ -33,7 +36,9 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     creatorAddress = event.args.sender.toLowerCase();
                 }
                 const creatorTransactions = txEvent.filterLog(allEvents, tokenAddress)
+
                 if (creatorTransactions.length < MIN_TRANSACTIONS) {
+                    const tokenSymbol = await fetcher.getTokenSymbol(event.address); // Get token symbol using custom function
                     findings.push(
                         Finding.fromObject({
                                 name: 'Potentially Suspicious Creator',
@@ -50,6 +55,15 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                         remove: false,
                                     },
                                 ],
+                                metadata: {
+                                    tokenSymbol: JSON.stringify(tokenSymbol),
+                                    attackerAddress: JSON.stringify(creatorAddress),
+                                    transaction: JSON.stringify(transaction.hash),
+                                    tokenAddress: tokenAddress!,
+                                    contractAddress: JSON.stringify(event.address),
+                                    event: JSON.stringify(event.name),
+                                    deployer: JSON.stringify(event.args.sender),
+                                },
                             })
                         );
                 }

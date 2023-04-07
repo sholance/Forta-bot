@@ -53,4 +53,15 @@ export class PoolFetcher {
         this.cache.set(key, returnedValues);
         return returnedValues;
     }
+    public async getTokenSymbol(
+        poolAddress: string,
+    ): Promise<string | null> {
+        try {
+            const pool = new Contract(poolAddress, FUNCTIONS_ABI, this.provider);
+            return await pool.symbol?.toLowerCase();
+        } catch { 
+        }
+
+        return null;
+    }
 }

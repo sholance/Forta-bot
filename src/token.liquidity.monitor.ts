@@ -27,9 +27,15 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                 logs.map(async (log) => {
                     const block = txEvent.blockNumber;
                     const [valid, token0, token1, totalSupply] = await fetcher.getPoolData(block - 1, log.address);
+                    let transaction = txEvent.transaction;
+                    const creatorAddress = transaction.from;
+                    let tokenAddress: string;
+                    if ("token0" in log.args) {
+                        tokenAddress = log.args.token0.toLowerCase();
+                    }
 
-                    // const createdPair = createPair(token0, token1, swapFactoryAddress);
                     if (valid && totalSupply.gt(0)) {
+                        const tokenSymbol = await fetcher.getTokenSymbol(log.address); // Get token symbol using custom function
                         try {
                             const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, log.address, token0, token1);
                             const amount0: BigNumber = BigNumber.from(log.args.amount0);
@@ -37,7 +43,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                             const percentageToken0Out = amount0.mul(100).div(balance0);
                             const percentageToken1Out = amount1.mul(100).div(balance1);
                             const createdPair = log.address.toLowerCase();
-                            const creatorAddress: string = log.args.sender.toLowerCase();
+                            // const creatorAddress: string = log.args.sender.toLowerCase();
                             if ((percentageToken0Out.gte(thresholdPercentage) || percentageToken1Out.gte(thresholdPercentage))
                             ) {
 
@@ -64,6 +70,15 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                 remove: false,
                             },
                         ],
+                        metadata: {
+                            tokenSymbol: JSON.stringify(tokenSymbol),
+                            attackerAddress: JSON.stringify(creatorAddress),
+                            transaction: JSON.stringify(transaction.hash),
+                            tokenAddress: tokenAddress!,
+                            contractAddress: JSON.stringify(log.address),
+                            event: JSON.stringify(log.name),
+                            deployer: JSON.stringify(log.args.sender),
+                        },
                     }));
                     }
                         } catch (error) {
