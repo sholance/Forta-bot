@@ -3,7 +3,7 @@ import { utils } from "ethers";
 import { PoolFetcher } from "./utils";
 
 // This is the address of the token and the events in the liquidity contract we're monitoring
-const { SWAP_FACTORY_ADDRESSES, PAIRCREATED_EVENT_ABI, POOLCREATED_EVENT_ABI, NEWPOOL_EVENT_ABI, ADDLIQUIDITY_EVENT_ABI, MIN_TRANSACTIONS, TRANSFER_EVENT_ABI, APPROVAL_EVENT_ABI, MINT_EVENT_ABI, BURN_EVENT_ABI } = require("./constants");
+const { SWAP_FACTORY_ADDRESSES, PAIRCREATED_EVENT_ABI, POOLCREATED_EVENT_ABI, NEWPOOL_EVENT_ABI, ADDLIQUIDITY_EVENT_ABI, MIN_NONCE_THRESHOLD, TRANSFER_EVENT_ABI, APPROVAL_EVENT_ABI, MINT_EVENT_ABI, BURN_EVENT_ABI } = require("./constants");
 
 
 // Swap Factory V3 interface with the event
@@ -15,15 +15,15 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
         // Initialize the finding array
         let findings: Finding[] = [];
         let fetcher = new PoolFetcher(getEthersProvider());
+        const block = txEvent.blockNumber;
+
 
         // Get all PairCreated and AddLiquidity events for each EVM
         for (const [evmName, swapFactoryAddress] of Object.entries(swapFactoryAddresses)) {
             const pairCreatedEvents = txEvent.filterLog(PAIRCREATED_EVENT_ABI, swapFactoryAddress);
             const poolCreatedEvents = txEvent.filterLog(POOLCREATED_EVENT_ABI, swapFactoryAddress);
             const newPoolEvents = txEvent.filterLog(NEWPOOL_EVENT_ABI, swapFactoryAddress);
-            const allEvents = [TRANSFER_EVENT_ABI, APPROVAL_EVENT_ABI, MINT_EVENT_ABI, BURN_EVENT_ABI];
             let transaction = txEvent.transaction;
-
 
 
             for (const event of [...poolCreatedEvents, ...pairCreatedEvents, ...newPoolEvents]) {
@@ -35,17 +35,20 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                 if (event.args && event.args.sender) {
                     creatorAddress = event.args.sender.toLowerCase();
                 }
-                const creatorTransactions = txEvent.filterLog(allEvents, tokenAddress)
+                if (creatorAddress) {
+                const nonce = await getEthersProvider().getTransactionCount(creatorAddress!, block);
+                const code = await getEthersProvider().getCode(creatorAddress!);
+                const isEoa = (code === '0x');
 
-                if (creatorTransactions.length < MIN_TRANSACTIONS) {
-                    const tokenSymbol = await fetcher.getTokenSymbol(event.address); // Get token symbol using custom function
+                if (isEoa && nonce < MIN_NONCE_THRESHOLD) {
+                    const tokenSymbol = await fetcher.getTokenSymbol(block - 1, event.address); // Get token symbol using custom function
                     findings.push(
                         Finding.fromObject({
                                 name: 'Potentially Suspicious Creator',
-                                description: `Pool created by creator with only ${creatorTransactions.length} transactions`,
+                                description: `Pool created by creator with only ${nonce} transactions`,
                                 alertId: alertId,
                                 severity: FindingSeverity.Info,
-                            type: FindingType.Suspicious,
+                                type: FindingType.Suspicious,
                                 labels: [
                                     {
                                         entityType: EntityType.Address,
@@ -60,13 +63,14 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                     attackerAddress: JSON.stringify(creatorAddress),
                                     transaction: JSON.stringify(transaction.hash),
                                     tokenAddress: tokenAddress!,
-                                    contractAddress: JSON.stringify(event.address),
+                                    contractAddress: JSON.stringify(transaction.to),
                                     event: JSON.stringify(event.name),
                                     deployer: JSON.stringify(event.args.sender),
                                 },
                             })
                         );
                 }
+            }
             }
 
         }

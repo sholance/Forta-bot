@@ -54,14 +54,22 @@ export class PoolFetcher {
         return returnedValues;
     }
     public async getTokenSymbol(
-        poolAddress: string,
+        block: number,
+        tokenAddress: string,
     ): Promise<string | null> {
+        const key: string = `symbol-${tokenAddress}-${block}`;
+        if (this.cache.has(key)) return this.cache.get(key) as any;
+        let returnedValue: string;
         try {
-            const pool = new Contract(poolAddress, FUNCTIONS_ABI, this.provider);
-            return await pool.symbol?.toLowerCase();
+            const pool = new Contract(tokenAddress, FUNCTIONS_ABI, this.provider);
+            const symbol: string = await new Promise(
+                pool.symbol({ blockTag: block })
+                );
+                returnedValue = symbol.toLowerCase();
         } catch { 
+            returnedValue = "";
         }
+        return returnedValue;
 
-        return null;
     }
 }

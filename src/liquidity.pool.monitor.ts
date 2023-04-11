@@ -15,6 +15,8 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
     // Initialize the finding array
     let findings: Finding[] = [];
     let fetcher = new PoolFetcher(getEthersProvider());
+    const block = txEvent.blockNumber;
+
     // const log: LogDescription[] = txEvent.filterLog(PAIRCREATED_EVENT_ABI);
 
     // Get all PairCreated and AddLiquidity events for each EVM
@@ -30,7 +32,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
       let transaction = txEvent.transaction;
       // Checks to see if no one else deposits liquidity in the token's the liquidity pool
       if (addLiquidityEvents.length === 0 && (pairCreatedEvents.length > 0 || poolCreatedEvents.length > 0 || newPoolEvents.length > 0)) {
-        const tokenSymbol = await fetcher.getTokenSymbol(tokenAddress!); // Get token symbol using custom function
+        const tokenSymbol = await fetcher.getTokenSymbol(block - 1, tokenAddress!); // Get token symbol using custom function
         findings.push(
           Finding.fromObject({
             name: `No Liquidity Deposits in ${tokenAddress}`,
