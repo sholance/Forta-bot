@@ -29,6 +29,10 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
       if (pairCreatedEvents.length > 0) {
         tokenAddress = pairCreatedEvents[0].args.token0.toLowerCase() || poolCreatedEvents[0].args.token0.toLowerCase() || newPoolEvents[0].args.token0.toLowerCase();
       }
+      let contractAddress: string | undefined;
+      if (pairCreatedEvents.length > 0) {
+        contractAddress = pairCreatedEvents[0].args.sender.toLowerCase() || poolCreatedEvents[0].args.sender.toLowerCase() || newPoolEvents[0].args.sender.toLowerCase();
+      }
       let transaction = txEvent.transaction;
       // Checks to see if no one else deposits liquidity in the token's the liquidity pool
       if (addLiquidityEvents.length === 0 && (pairCreatedEvents.length > 0 || poolCreatedEvents.length > 0 || newPoolEvents.length > 0)) {
@@ -61,7 +65,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
               attackerAddress: JSON.stringify(transaction.from),
               transaction: JSON.stringify(transaction.hash),
               tokenAddress: tokenAddress!,
-              contractAddress: JSON.stringify(transaction.to),
+              contractAddress: JSON.stringify(contractAddress),
               deployer: JSON.stringify(transaction.from),
             },
           })
