@@ -1,7 +1,7 @@
 export const TOKEN_ADDRESS = "0xdbdc3f41e7baf3e5b014a3eb91b86f3570ead94c" //sample token address
 
 // minimum number of transactions for a creator to be considered safe
-export const MIN_NONCE_THRESHOLD = 80;
+export const MIN_NONCE_THRESHOLD = 3;
 
 
 /****************** USEFUL EVENT ABI'S *******************************/
