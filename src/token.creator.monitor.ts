@@ -40,7 +40,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                 const code = await getEthersProvider().getCode(creatorAddress!);
                 const isEoa = (code === '0x');
 
-                if (isEoa && nonce < MIN_NONCE_THRESHOLD) {
+                if (isEoa && nonce <= MIN_NONCE_THRESHOLD) {
                     const tokenSymbol = await fetcher.getTokenSymbol(block - 1, event.address); // Get token symbol using custom function
                     findings.push(
                         Finding.fromObject({
