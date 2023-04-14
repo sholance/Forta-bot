@@ -35,14 +35,13 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     }
 
                     if (valid && totalSupply.gt(0)) {
-                        const tokenSymbol = await fetcher.getTokenSymbol(block - 1, log.address); 
+                        const tokenSymbol = await fetcher.getTokenSymbol(block - 1, log.address); // Get token symbol using custom function
                         try {
                             const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, log.address, token0, token1);
                             const amount0: BigNumber = BigNumber.from(log.args.amount0);
                             const amount1: BigNumber = BigNumber.from(log.args.amount1);
-                            if (!balance0.isZero() && !balance1.isZero() ) {
-                            const percentageToken0Out = amount0.mul(100).div(balance0);
-                            const percentageToken1Out = amount1.mul(100).div(balance1);
+                            const percentageToken0Out = balance0.isZero() ? BigNumber.from(0) : amount0.mul(100).div(balance0);
+                            const percentageToken1Out = balance1.isZero() ? BigNumber.from(0) : amount1.mul(100).div(balance1);
                             const createdPair = log.address.toLowerCase();
                             if ((percentageToken0Out.gte(thresholdPercentage) || percentageToken1Out.gte(thresholdPercentage))
                             ) {
@@ -81,7 +80,6 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                         },
                     }));
                     }
-                }
                         } catch (error) {
                             console.log(error)
                         }
@@ -98,4 +96,3 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
 export default {
     handleTransaction: provideHandleTransaction("SOFT-RUG-PULL-SUS-POOL-REMOVAL", SWAP_FACTORY_ADDRESSES, TOKEN_ADDRESS, THRESHOLD_PERCENTAGE),
 };
-

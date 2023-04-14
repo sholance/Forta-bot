@@ -31,6 +31,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
             try {
               const  tokenAddress = pairCreatedEvents[0].args.token0.toLowerCase() || poolCreatedEvents[0].args.token0.toLowerCase() || newPoolEvents[0].args.token0.toLowerCase();
               const tokenSymbol = await fetcher.getTokenSymbol(block, tokenAddress); // Get token symbol using custom function
+              const contractAddress = transaction.to?.toLowerCase();
               findings.push(
                 Finding.fromObject({
                   name: `No Liquidity Deposits in ${tokenAddress}`,
@@ -59,7 +60,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     attackerAddress: JSON.stringify(transaction.from),
                   transaction: JSON.stringify(transaction.hash),
                   tokenAddress: tokenAddress,
-                  contractAddress: JSON.stringify(transaction.to),
+                  contractAddress: JSON.stringify(contractAddress),
                   deployer: JSON.stringify(transaction.from),
                 },
               })
