@@ -16,6 +16,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
         let findings: Finding[] = [];
         let fetcher = new PoolFetcher(getEthersProvider());
         const block = txEvent.blockNumber;
+      
 
 
         // Get all PairCreated and AddLiquidity events for each EVM
@@ -25,53 +26,57 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
             const newPoolEvents = txEvent.filterLog(NEWPOOL_EVENT_ABI, swapFactoryAddress);
             let transaction = txEvent.transaction;
 
+            try {
+                for (const event of [...poolCreatedEvents, ...pairCreatedEvents, ...newPoolEvents]) {
+                    let tokenAddress: string | undefined;
+                    if ("token0" in event.args) {
+                        tokenAddress = event.args.token0.toLowerCase();
+                    }
+                    const creatorAddress = txEvent.from.toLowerCase();
 
-            for (const event of [...poolCreatedEvents, ...pairCreatedEvents, ...newPoolEvents]) {
-                let tokenAddress: string | undefined;
-                if ("token0" in event.args) {
-                    tokenAddress = event.args.token0.toLowerCase();
-                }
-                let creatorAddress: string | undefined;
-                if (event.args && event.args.sender) {
-                    creatorAddress = event.args.sender.toLowerCase();
-                }
-                if (creatorAddress) {
-                const nonce = await getEthersProvider().getTransactionCount(creatorAddress!, block);
-                const code = await getEthersProvider().getCode(creatorAddress!);
-                const isEoa = (code === '0x');
-
-                if (isEoa && nonce <= MIN_NONCE_THRESHOLD) {
-                    const tokenSymbol = await fetcher.getTokenSymbol(block - 1, event.address); // Get token symbol using custom function
-                    findings.push(
-                        Finding.fromObject({
-                                name: 'Potentially Suspicious Creator',
-                                description: `Pool created by creator with only ${nonce} transactions`,
-                                alertId: alertId,
-                                severity: FindingSeverity.Info,
-                                type: FindingType.Suspicious,
-                                labels: [
-                                    {
-                                        entityType: EntityType.Address,
-                                        entity: creatorAddress!,
-                                        label: 'creator',
-                                        confidence: 0.6,
-                                        remove: false,
+                    if (creatorAddress) {
+                    const nonce = txEvent.transaction.nonce;
+                    console.log(nonce)
+                    const code = await getEthersProvider().getCode(creatorAddress!);
+                    const isEoa = (code === '0x');
+                          
+                    if (isEoa && nonce <= MIN_NONCE_THRESHOLD) {
+                        const tokenSymbol = await fetcher.getTokenSymbol(block - 1, event.address); // Get token symbol using custom function
+                        findings.push(
+                            Finding.fromObject({
+                                    name: 'Potentially Suspicious Creator',
+                                    description: `Pool created by creator with only ${nonce} transactions`,
+                                    alertId: alertId,
+                                    severity: FindingSeverity.Info,
+                                    type: FindingType.Suspicious,
+                                    labels: [
+                                        {
+                                            entityType: EntityType.Address,
+                                            entity: creatorAddress!,
+                                            label: 'creator',
+                                            confidence: 0.6,
+                                            remove: false,
+                                        },
+                                    ],
+                                    metadata: {
+                                        tokenSymbol: JSON.stringify(tokenSymbol),
+                                        attackerAddress: JSON.stringify(creatorAddress),
+                                        transaction: JSON.stringify(transaction.hash),
+                                        tokenAddress: tokenAddress!,
+                                        contractAddress: JSON.stringify(event.address.toLowerCase()),
+                                        event: JSON.stringify(event.name),
+                                        deployer: JSON.stringify(event.args.sender),
                                     },
-                                ],
-                                metadata: {
-                                    tokenSymbol: JSON.stringify(tokenSymbol),
-                                    attackerAddress: JSON.stringify(creatorAddress),
-                                    transaction: JSON.stringify(transaction.hash),
-                                    tokenAddress: tokenAddress!,
-                                    contractAddress: JSON.stringify(transaction.to),
-                                    event: JSON.stringify(event.name),
-                                    deployer: JSON.stringify(event.args.sender),
-                                },
-                            })
-                        );
+                                })
+                            );
+                    }
+                }
                 }
             }
+            catch (error) {
+                console.log(error)
             }
+
 
         }
 
