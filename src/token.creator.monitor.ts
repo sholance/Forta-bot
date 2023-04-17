@@ -36,7 +36,6 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
 
                     if (creatorAddress) {
                     const nonce = txEvent.transaction.nonce;
-                    console.log(nonce)
                     const code = await getEthersProvider().getCode(creatorAddress!);
                     const isEoa = (code === '0x');
                           
@@ -45,7 +44,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                         findings.push(
                             Finding.fromObject({
                                     name: 'Potentially Suspicious Creator',
-                                    description: `Pool created by creator with only ${nonce} transactions`,
+                                    description: `Pool created by creator with ${nonce} transactions`,
                                     alertId: alertId,
                                     severity: FindingSeverity.Info,
                                     type: FindingType.Suspicious,
@@ -63,9 +62,10 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                         attackerAddress: JSON.stringify(creatorAddress),
                                         transaction: JSON.stringify(transaction.hash),
                                         tokenAddress: tokenAddress!,
+                                        nonce: JSON.stringify(nonce),
                                         contractAddress: JSON.stringify(event.address.toLowerCase()),
                                         event: JSON.stringify(event.name),
-                                        deployer: JSON.stringify(event.args.sender),
+                                        deployer: JSON.stringify(transaction.from),
                                     },
                                 })
                             );
