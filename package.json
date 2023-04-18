@@ -12,6 +12,12 @@
     10,
     250
   ],
+  "chainSettings": {
+    "default": {
+      "shards": 10,
+      "target": 2
+    }
+  },
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
