@@ -35,10 +35,10 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                         try {
                             const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, log.address, token0, token1);
                             let tokenAddress: string | undefined;
-                            if ("token0" in log.args && balance0.lt(balance1)) {
-                                tokenAddress = log.args.token1.toLowerCase();
+                            if ("token1" in log.args && balance0.lt(balance1)) {
+                                tokenAddress = log.args.token1?.toLowerCase();
                               } else {
-                                tokenAddress = log.args.token0.toLowerCase();
+                                tokenAddress = log.args.token0?.toLowerCase();
                               }
                               let tokenSymbol: string | null;
                               if ("token0" && "token1" in log.args && balance0.lt(balance1)) {
