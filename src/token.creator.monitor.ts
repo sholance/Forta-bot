@@ -34,7 +34,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     }
                     let tokenSymbol: string | null;
                     if (tokenAddress) {
-                        tokenSymbol = await fetcher.getTokenSymbol(block - 1, tokenAddress!)
+                        tokenSymbol = await fetcher.getTokenSymbol(block - 1, tokenAddress)
                     }
                     const creatorAddress = txEvent.from.toLowerCase();
 

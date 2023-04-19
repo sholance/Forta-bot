@@ -26,18 +26,21 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
             await Promise.all(
                 logs.map(async (log) => {
                     const block = txEvent.blockNumber;
-                    const [valid, token0, token1, totalSupply] = await fetcher.getPoolData(block - 1, log.address);
+                    const [valid, token0, token1, totalSupply] = await fetcher.getPoolData(block, log.address);
                     let transaction = txEvent.transaction;
                     const creatorAddress = transaction.from;
-                    let tokenAddress: string;
-                    if ("token0" in log.args) {
-                        tokenAddress = log.args.token0.toLowerCase();
-                    }
 
                     if (valid && totalSupply.gt(0)) {
-                        const tokenSymbol = await fetcher.getTokenSymbol(block - 1, tokenAddress!); // Get token symbol using custom function
+                        // const tokenSymbol = await fetcher.getTokenSymbol(block - 1, tokenAddress!); // Get token symbol using custom function
                         try {
                             const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, log.address, token0, token1);
+                            let tokenAddress: string | undefined;
+
+                            if ("token0" in log.args && balance0.lt(balance1)) {
+                                tokenAddress = log.args.token1.toLowerCase();
+                              } else {
+                                tokenAddress = log.args.token0.toLowerCase();
+                              }
                             const amount0: BigNumber = BigNumber.from(log.args.amount0);
                             const amount1: BigNumber = BigNumber.from(log.args.amount1);
                             const percentageToken0Out = balance0.isZero() ? BigNumber.from(0) : amount0.mul(100).div(balance0);
@@ -70,7 +73,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                             },
                         ],
                         metadata: {
-                            tokenSymbol: JSON.stringify(tokenSymbol),
+                            tokenSymbol: JSON.stringify(tokenAddress),
                             attackerAddress: JSON.stringify(creatorAddress),
                             transaction: JSON.stringify(transaction.hash),
                             tokenAddress: tokenAddress!,
