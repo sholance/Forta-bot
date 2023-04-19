@@ -76,8 +76,8 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                 },
                             })
                         );
-                    } catch (error) {
-                        console.log(error)
+                    } catch (error: any) {
+                        console.log(`Error in SOFT-RUG-PULL-SUS-LIQ-POOL-REMOVAL in token.removal.monitor: ${error.message}`);
                     }
                 }
             }
