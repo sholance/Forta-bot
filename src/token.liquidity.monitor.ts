@@ -35,12 +35,18 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                         try {
                             const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, log.address, token0, token1);
                             let tokenAddress: string | undefined;
-
                             if ("token0" in log.args && balance0.lt(balance1)) {
                                 tokenAddress = log.args.token1.toLowerCase();
                               } else {
                                 tokenAddress = log.args.token0.toLowerCase();
                               }
+                              let tokenSymbol: string | null;
+                              if ("token0" && "token1" in log.args && balance0.lt(balance1)) {
+                                  tokenSymbol = await fetcher.getTokenSymbol(block - 1, token1);
+                                } else {
+                                  tokenSymbol = await fetcher.getTokenSymbol(block - 1, token0);
+                                }
+                                 
                             const amount0: BigNumber = BigNumber.from(log.args.amount0);
                             const amount1: BigNumber = BigNumber.from(log.args.amount1);
                             const percentageToken0Out = balance0.isZero() ? BigNumber.from(0) : amount0.mul(100).div(balance0);
@@ -73,7 +79,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                             },
                         ],
                         metadata: {
-                            tokenSymbol: JSON.stringify(tokenAddress),
+                            tokenSymbol: JSON.stringify(tokenSymbol!),
                             attackerAddress: JSON.stringify(creatorAddress),
                             transaction: JSON.stringify(transaction.hash),
                             tokenAddress: tokenAddress!,
