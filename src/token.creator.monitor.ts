@@ -32,6 +32,10 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     if ("token0" in event.args) {
                         tokenAddress = event.args.token0.toLowerCase();
                     }
+                    let tokenSymbol: string | null;
+                    if (tokenAddress) {
+                        tokenSymbol = await fetcher.getTokenSymbol(block - 1, tokenAddress!)
+                    }
                     const creatorAddress = txEvent.from.toLowerCase();
 
                     if (creatorAddress) {
@@ -40,7 +44,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     const isEoa = (code === '0x');
                           
                     if (isEoa && nonce <= MIN_NONCE_THRESHOLD) {
-                        const tokenSymbol = await fetcher.getTokenSymbol(block - 1, tokenAddress!); // Get token symbol using custom function
+                        // const tokenSymbol = await fetcher.getTokenSymbol(block - 1, tokenAddress!); // Get token symbol using custom function
                         findings.push(
                             Finding.fromObject({
                                     name: 'Potentially Suspicious Creator',
@@ -58,7 +62,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                         },
                                     ],
                                     metadata: {
-                                        tokenSymbol: JSON.stringify(tokenSymbol),
+                                        tokenSymbol: JSON.stringify(tokenSymbol!),
                                         attackerAddress: JSON.stringify(creatorAddress),
                                         transaction: JSON.stringify(transaction.hash),
                                         tokenAddress: tokenAddress!,
@@ -74,7 +78,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                 }
             }
             catch (error: any) {
-                console.log(`Error in SOFT-RUG-PULL-SUS-LIQ-POOL-CREATION: ${error.message}`);
+                console.log(`Error in detecting SOFT-RUG-PULL-SUS-LIQ-POOL-CREATION: ${error.message}`);
             }
 
 
