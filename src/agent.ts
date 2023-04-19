@@ -1,4 +1,6 @@
-import { HandleTransaction, TransactionEvent } from 'forta-agent'
+import { HandleTransaction, TransactionEvent, getEthersProvider } from 'forta-agent'
+import { providers } from "ethers";
+import NetworkManager, { NETWORK_MAP } from "./network";
 // Monitor for token creators that are EOA with low reputation
 import creatorMonitorFunctionAgent from "./token.creator.monitor";
 
@@ -14,6 +16,12 @@ import tokenRemovalMonitorFunctionAgent from './token.removal.monitor';
 type Agent = {
   handleTransaction: HandleTransaction,
 }
+const networkManager = new NetworkManager(NETWORK_MAP);
+
+export const provideInitialize = (provider: providers.Provider) => async () => {
+  const { chainId } = await provider.getNetwork();
+  networkManager.setNetwork(chainId);
+};
 
 function provideHandleTransaction(
   creatorMonitorFunctionAgent: Agent,
@@ -46,4 +54,5 @@ export default {
     tokenLiquidityMonitorFunctionAgent,
     tokenRemovalMonitorFunctionAgent
   ),
+  initialize: provideInitialize(getEthersProvider()),
 }
