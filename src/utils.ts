@@ -62,13 +62,18 @@ export class PoolFetcher {
         let returnedValue: string;
         try {
             const pool = new Contract(tokenAddress, FUNCTIONS_ABI, this.provider);
-            const symbol: string = await new Promise(
-                pool.symbol({ blockTag: block })
-                );
-                returnedValue = symbol.toLowerCase();
+            const symbol = await pool.symbol({ blockTag: block });
+                returnedValue = symbol;
         } catch { 
             returnedValue = "";
         }
+        if (returnedValue="") {
+            let tokenName;
+            const pool = new Contract(tokenAddress, FUNCTIONS_ABI, this.provider);
+            tokenName = await pool.name({ blockTag: block });
+            returnedValue = tokenName;
+        }
+
         return returnedValue;
 
     }
