@@ -19,15 +19,29 @@ This agent monitors transactions on the Ethereum network for suspicious activity
 
 Describe each of the type of alerts fired by this agent
 
-- RUG-1
+- SOFT-RUG-PULL-SUS-LIQ-POOL-CREATION
   - Fired when a liquidity pools creator is detected to have a low reputation score by tracking the number of transactions they have
+  - Severity is always set to "Info"
+  - Type is always set to "suspicious"
+  - Metadata field contains symbol, attackerAddress, transaction, tokenaddress, nonce, contractaddress, event and deployer
+  - Label field contains entityType, entity, label, and confidence for the address
 
-- RUG-2
+
+- SOFT-RUG-PULL-SUS-LIQ-POOL-RESERVE-CHANGE
   - Fired when a liquidity pool is detected to have no other liquidity providers
+  - Severity is always set to "medium"
+  - Type is always set to "suspicious"
+  - Metadata field contains symbol, attackerAddress, transaction, tokenaddress, contractaddress and deployer
+  - Label field contains entityType, entity, label, and confidence for address and transaction
 
-- RUG-3
+
+- SOFT-RUG-PULL-SUS-POOL-REMOVAL
   - Fired when a token creator is detected to have removed liquidity from a liquidity pool
-  - Fired when a token creator is detected to have taken a large amount of token and sold it on the token liquidity pool
+  - Fired when 90% of the liquidity is removed from a liquidity pool
+  - Severity is always set to "medium"
+  - Type is always set to "suspicious"
+  - Metadata field contains symbol, attackerAddress, transaction, tokenaddress, contractaddress and deployer
+  - Label field contains entityType, entity, label, and confidence for address and transaction
 
 
 ## Test Data

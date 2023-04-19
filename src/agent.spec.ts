@@ -1,8 +1,8 @@
 const { provideHandleTransaction } = require("./agent");
 
-describe("Tether transfer agent", () => {
+describe("Soft Rug agent", () => {
   let handleTransaction: any;
-  const mockLargeTransferEventAgent = {
+  const mockSoftRugPullAgent = {
     handleTransaction: jest.fn(),
   };
   const mockTransferFromFunctionAgent = {
@@ -14,14 +14,14 @@ describe("Tether transfer agent", () => {
 
   beforeAll(() => {
     handleTransaction = provideHandleTransaction(
-      mockLargeTransferEventAgent,
+      mockSoftRugPullAgent,
       mockTransferFromFunctionAgent
     );
   });
 
   it("invokes largeTransferEventAgent and transferFromFunctionAgent and returns their findings", async () => {
     const mockFinding = { some: "finding" };
-    mockLargeTransferEventAgent.handleTransaction.mockReturnValueOnce([
+    mockSoftRugPullAgent.handleTransaction.mockReturnValueOnce([
       mockFinding,
     ]);
     mockTransferFromFunctionAgent.handleTransaction.mockReturnValueOnce([
@@ -31,10 +31,10 @@ describe("Tether transfer agent", () => {
     const findings = await handleTransaction(mockTxEvent);
 
     expect(findings).toStrictEqual([mockFinding, mockFinding]);
-    expect(mockLargeTransferEventAgent.handleTransaction).toHaveBeenCalledTimes(
+    expect(mockSoftRugPullAgent.handleTransaction).toHaveBeenCalledTimes(
       1
     );
-    expect(mockLargeTransferEventAgent.handleTransaction).toHaveBeenCalledWith(
+    expect(mockSoftRugPullAgent.handleTransaction).toHaveBeenCalledWith(
       mockTxEvent
     );
     expect(
