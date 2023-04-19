@@ -55,6 +55,8 @@ export const multicall2Addresses: Record<number, string> = {
 export const FUNCTIONS_ABI: string[] = [
   "function token0() public view returns (address)",
   "function token1() public view returns (address)",
+  "function symbol() external view returns (string)",
+  "function name() public view returns (string)",
   "function totalSupply() public view returns (uint256)",
   "function balanceOf(address account) external view returns (uint256)",
 ];

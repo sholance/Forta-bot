@@ -40,7 +40,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     const isEoa = (code === '0x');
                           
                     if (isEoa && nonce <= MIN_NONCE_THRESHOLD) {
-                        const tokenSymbol = await fetcher.getTokenSymbol(block - 1, event.address); // Get token symbol using custom function
+                        const tokenSymbol = await fetcher.getTokenSymbol(block - 1, tokenAddress!); // Get token symbol using custom function
                         findings.push(
                             Finding.fromObject({
                                     name: 'Potentially Suspicious Creator',

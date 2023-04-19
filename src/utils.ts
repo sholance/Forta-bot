@@ -59,22 +59,17 @@ export class PoolFetcher {
     ): Promise<string | null> {
         const key: string = `symbol-${tokenAddress}-${block}`;
         if (this.cache.has(key)) return this.cache.get(key) as any;
-        let returnedValue: string;
+        let returnedValue: any;
         try {
             const pool = new Contract(tokenAddress, FUNCTIONS_ABI, this.provider);
             const symbol = await pool.symbol({ blockTag: block });
-                returnedValue = symbol;
-        } catch { 
-            returnedValue = "";
-        }
-        if (returnedValue="") {
-            let tokenName;
+            returnedValue = symbol;
+        } catch (error: any) {
             const pool = new Contract(tokenAddress, FUNCTIONS_ABI, this.provider);
-            tokenName = await pool.name({ blockTag: block });
+            const tokenName = await pool.name({ blockTag: block });
             returnedValue = tokenName;
         }
-
-        return returnedValue;
-
+        this.cache.set(key, returnedValue);
+        return returnedValue
     }
 }

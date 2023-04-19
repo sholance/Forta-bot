@@ -35,7 +35,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     }
 
                     if (valid && totalSupply.gt(0)) {
-                        const tokenSymbol = await fetcher.getTokenSymbol(block - 1, log.address); // Get token symbol using custom function
+                        const tokenSymbol = await fetcher.getTokenSymbol(block - 1, tokenAddress!); // Get token symbol using custom function
                         try {
                             const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, log.address, token0, token1);
                             const amount0: BigNumber = BigNumber.from(log.args.amount0);

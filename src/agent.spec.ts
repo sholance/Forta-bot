@@ -19,6 +19,7 @@ describe("Soft Rug agent", () => {
     );
   });
 
+  
   it("invokes largeTransferEventAgent and transferFromFunctionAgent and returns their findings", async () => {
     const mockFinding = { some: "finding" };
     mockSoftRugPullAgent.handleTransaction.mockReturnValueOnce([
