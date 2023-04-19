@@ -28,10 +28,6 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
 
             try {
                 for (const event of [...poolCreatedEvents, ...pairCreatedEvents, ...newPoolEvents]) {
-                    let tokenAddress: string | undefined;
-                    if ("token0" in event.args) {
-                        tokenAddress = event.args.token0.toLowerCase();
-                    }
                     const creatorAddress = txEvent.from.toLowerCase();
 
                     if (creatorAddress) {
@@ -40,7 +36,9 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     const isEoa = (code === '0x');
                           
                     if (isEoa && nonce <= MIN_NONCE_THRESHOLD) {
-                        const tokenSymbol = await fetcher.getTokenSymbol(block - 1, tokenAddress!); // Get token symbol using custom function
+                        const  tokenAddress = pairCreatedEvents[0].args.token0.toLowerCase() || poolCreatedEvents[0].args.token0.toLowerCase() || newPoolEvents[0].args.token0.toLowerCase();
+                        const block = txEvent.blockNumber;
+                        const tokenSymbol = await fetcher.getTokenSymbol(block, tokenAddress); // Get token symbol using custom function
                         findings.push(
                             Finding.fromObject({
                                     name: 'Potentially Suspicious Creator',
@@ -61,7 +59,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                         tokenSymbol: JSON.stringify(tokenSymbol!),
                                         attackerAddress: JSON.stringify(creatorAddress),
                                         transaction: JSON.stringify(transaction.hash),
-                                        tokenAddress: tokenAddress!,
+                                        tokenAddress: tokenAddress,
                                         nonce: JSON.stringify(nonce),
                                         contractAddress: JSON.stringify(event.address.toLowerCase()),
                                         event: JSON.stringify(event.name),
@@ -74,7 +72,6 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                 }
             }
             catch (error: any) {
-                console.log(`Error in detecting SOFT-RUG-PULL-SUS-LIQ-POOL-CREATION: ${error.message}`);
             }
 
 

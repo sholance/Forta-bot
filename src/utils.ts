@@ -53,23 +53,51 @@ export class PoolFetcher {
         this.cache.set(key, returnedValues);
         return returnedValues;
     }
-    public async getTokenSymbol(
+    public async getAssetSymbol(
         block: number,
         tokenAddress: string,
-    ): Promise<string | null> {
+      ): Promise<string | null> {
         const key: string = `symbol-${tokenAddress}-${block}`;
-        if (this.cache.has(key)) return this.cache.get(key) as any;
-        let returnedValue: any;
+        if (this.cache.has(key)) return this.cache.get(key) as unknown as string;
         try {
-            const pool = new Contract(tokenAddress, FUNCTIONS_ABI, this.provider);
-            const symbol = await pool.symbol({ blockTag: block });
-            returnedValue = symbol;
+          const pool = new Contract(tokenAddress, FUNCTIONS_ABI, this.provider);
+          const symbol = await pool.symbol({ blockTag: block });
+          this.cache.set(key, symbol);
+          return symbol;
         } catch (error: any) {
-            const pool = new Contract(tokenAddress, FUNCTIONS_ABI, this.provider);
-            const tokenName = await pool.name({ blockTag: block });
-            returnedValue = tokenName;
+          const pool = new Contract(tokenAddress, FUNCTIONS_ABI, this.provider);
+          const tokenName = await pool.name({ blockTag: block });
+          this.cache.set(key, tokenName);
+          return tokenName;
         }
-        this.cache.set(key, returnedValue);
-        return returnedValue
-    }
+      }
+      public async getTokenSymbol(
+        block: number,
+        tokenAddress: string,
+      ): Promise<string | null> {
+        const key: string = `symbol-${tokenAddress}-${block}`;
+        if (tokenAddress === 'native') return 'native';
+      
+        if (this.cache.has(key)) {
+          return this.cache.get(key) as any;
+        }
+      
+        const contract = new Contract(tokenAddress, FUNCTIONS_ABI, this.provider);
+        let symbol: any;
+        try {
+          symbol = await contract.symbol({ blockTag: block });
+        } catch {
+            
+        }
+      
+        if (symbol) {
+          this.cache.set(key, symbol);
+        } else {
+            this.cache.set(key, symbol!)
+        }
+      
+        return symbol;
+      }
+      
+      
 }

@@ -40,10 +40,10 @@ function provideHandleTransaction(
     ])).flat()
 
     return findings
-    } catch (error: any) {
-      console.log(`Error in agent.ts: ${error.message}`);
+    } catch {
       return []
     }
+
   }
 }
 

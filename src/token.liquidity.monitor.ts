@@ -41,7 +41,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                 tokenAddress = log.args.token0?.toLowerCase();
                               }
                               let tokenSymbol: string | null;
-                              if ("token0" && "token1" in log.args && balance0.lt(balance1)) {
+                              if (("token0" && "token1" in log.args) && balance0.lt(balance1)) {
                                   tokenSymbol = await fetcher.getTokenSymbol(block - 1, token1);
                                 } else {
                                   tokenSymbol = await fetcher.getTokenSymbol(block - 1, token0);
