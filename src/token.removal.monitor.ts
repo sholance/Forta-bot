@@ -26,10 +26,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
             const removeLiquidityEvent = txEvent.filterLog(REMOVELIQUIDITY_EVENT_ABI);
 
             for (const event of [...poolCreatedEvents, ...pairCreatedEvents, ...newPoolEvents]) {
-                let tokenAddress: string | undefined;
-                if ("token0" in event.args) {
-                    tokenAddress = event.args.token0.toLowerCase();
-                }
+
                 // let creatorAddress: string | undefined;
                 // if (event.args && event.args.sender) {
                 //     creatorAddress = event.args.sender.toLowerCase();
@@ -38,8 +35,27 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                 let creatorAddress = transaction.from;
 
                 if (removeLiquidityEvent.length > 0 && (pairCreatedEvents.length > 0 || poolCreatedEvents.length > 0 || newPoolEvents.length > 0)) {
-                    const tokenSymbol = await fetcher.getTokenSymbol(block - 1, event.address); // Get token symbol using custom function
+                    const [valid, token0, token1, totalSupply] = await fetcher.getPoolData(block, event.address);
+                    const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, event.address, token0, token1);
 
+                    
+                    let tokenAddress: string | undefined;
+                    if ("token1" in event.args && balance0.lt(balance1)) {
+                        tokenAddress = event.args.token1?.toLowerCase();
+                      } else {
+                        tokenAddress = event.args.token0?.toLowerCase();
+                      }
+                      let tokenSymbol: string | null;
+                      if (("token0" && "token1" in event.args) && balance0.lt(balance1)) {
+                          const tokena = await fetcher.getTokenSymbol(block - 1, token1);
+                          const tokenb = await fetcher.getTokenSymbol(block - 1, token0);
+                          tokenSymbol = `${tokena}-${tokenb}`;
+                        } else {
+                            const tokena = await fetcher.getTokenSymbol(block - 1, token0);
+                            const tokenb = await fetcher.getTokenSymbol(block - 1, token1);
+                            tokenSymbol = `${tokena}-${tokenb}`;
+                        }
+                         
                     try {
                         findings.push(
                             Finding.fromObject({

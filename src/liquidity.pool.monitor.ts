@@ -1,6 +1,7 @@
 import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent, EntityType, getEthersProvider, LogDescription, ethers } from "forta-agent";
 import { utils } from "ethers";
 import { PoolFetcher } from "./utils";
+import { BURN_EVENT_ABI } from "./constants";
 
 // This is the address of the token and the events in the liquidity contract we're monitoring
 const { TOKEN_ADDRESS, SWAP_FACTORY_ADDRESSES, PAIRCREATED_EVENT_ABI, POOLCREATED_EVENT_ABI, NEWPOOL_EVENT_ABI, ADDLIQUIDITY_EVENT_ABI } = require("./constants");
@@ -20,6 +21,8 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
       const poolCreatedEvents = txEvent.filterLog(POOLCREATED_EVENT_ABI, swapFactoryAddress);
       const newPoolEvents = txEvent.filterLog(NEWPOOL_EVENT_ABI, swapFactoryAddress);
       const addLiquidityEvents = txEvent.filterLog(ADDLIQUIDITY_EVENT_ABI, trackedTokenAddress);
+      const logs: LogDescription[] = txEvent.filterLog([PAIRCREATED_EVENT_ABI, POOLCREATED_EVENT_ABI, NEWPOOL_EVENT_ABI]);
+
       let pairAddress: string | undefined;
       if (pairCreatedEvents.length > 0) {
         pairAddress = pairCreatedEvents[0].args.pair.toLowerCase();
@@ -30,8 +33,21 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
       if (addLiquidityEvents.length === 0 && (pairCreatedEvents.length > 0 || poolCreatedEvents.length > 0 || newPoolEvents.length > 0)) {
             try {
               const  tokenAddress = pairCreatedEvents[0].args.token0.toLowerCase() || poolCreatedEvents[0].args.token0.toLowerCase() || newPoolEvents[0].args.token0.toLowerCase();
-              const tokenSymbol = await fetcher.getTokenSymbol(block, tokenAddress); // Get token symbol using custom function
-              const contractAddress = transaction.to?.toLowerCase();
+   
+                const [valid, token0, token1, totalSupply] = await fetcher.getPoolData(block, pairCreatedEvents[0].args.pair);
+                const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, pairCreatedEvents[0].args.pair, token0, token1);
+                  let tokenSymbol: string | null;
+              if (("token0" && "token1" in pairCreatedEvents) && balance0.lt(balance1)) {
+                  const tokena = await fetcher.getTokenSymbol(block - 1, token1);
+                  const tokenb = await fetcher.getTokenSymbol(block - 1, token0);
+                  tokenSymbol = `${tokena} - ${tokenb}`;
+                } else {
+                    const tokena = await fetcher.getTokenSymbol(block - 1, token0);
+                    const tokenb = await fetcher.getTokenSymbol(block - 1, token1);
+                    tokenSymbol = `${tokena} - ${tokenb}`;
+                }
+                                         
+                const contractAddress = transaction.to?.toLowerCase();
               findings.push(
                 Finding.fromObject({
                   name: `No Liquidity Deposits in ${tokenAddress}`,

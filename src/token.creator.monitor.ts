@@ -1,4 +1,4 @@
-import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent, EntityType, getEthersProvider } from "forta-agent";
+import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent, EntityType, getEthersProvider, LogDescription } from "forta-agent";
 import { utils } from "ethers";
 import { PoolFetcher } from "./utils";
 
@@ -15,7 +15,6 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
         // Initialize the finding array
         let findings: Finding[] = [];
         let fetcher = new PoolFetcher(getEthersProvider());
-        const block = txEvent.blockNumber;
       
 
 
@@ -25,6 +24,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
             const poolCreatedEvents = txEvent.filterLog(POOLCREATED_EVENT_ABI, swapFactoryAddress);
             const newPoolEvents = txEvent.filterLog(NEWPOOL_EVENT_ABI, swapFactoryAddress);
             let transaction = txEvent.transaction;
+
 
             try {
                 for (const event of [...poolCreatedEvents, ...pairCreatedEvents, ...newPoolEvents]) {
@@ -38,8 +38,20 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     if (isEoa && nonce <= MIN_NONCE_THRESHOLD) {
                         const  tokenAddress = pairCreatedEvents[0].args.token0.toLowerCase() || poolCreatedEvents[0].args.token0.toLowerCase() || newPoolEvents[0].args.token0.toLowerCase();
                         const block = txEvent.blockNumber;
-                        const tokenSymbol = await fetcher.getTokenSymbol(block, tokenAddress); // Get token symbol using custom function
-                        findings.push(
+                        const [valid, token0, token1, totalSupply] = await fetcher.getPoolData(block, event.args.pair);
+                        const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, event.args.pair, token0, token1);
+                            let tokenSymbol: string | null;
+                        if (("token0" && "token1" in event.args) && balance0.lt(balance1)) {
+                            const tokena = await fetcher.getTokenSymbol(block - 1, token1);
+                            const tokenb = await fetcher.getTokenSymbol(block - 1, token0);
+                            tokenSymbol = `${tokena} - ${tokenb}`;
+                          } else {
+                              const tokena = await fetcher.getTokenSymbol(block - 1, token0);
+                              const tokenb = await fetcher.getTokenSymbol(block - 1, token1);
+                              tokenSymbol = `${tokena} - ${tokenb}`;
+                          }
+                                                   
+                          findings.push(
                             Finding.fromObject({
                                     name: 'Potentially Suspicious Creator',
                                     description: `Pool created by creator with ${nonce} transactions`,
@@ -67,7 +79,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                     },
                                 })
                             );
-                    }
+                }
                 }
                 }
             }

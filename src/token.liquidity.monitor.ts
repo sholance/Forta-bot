@@ -34,17 +34,16 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                         // const tokenSymbol = await fetcher.getTokenSymbol(block - 1, tokenAddress!); // Get token symbol using custom function
                         try {
                             const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, log.address, token0, token1);
-                            let tokenAddress: string | undefined;
-                            if ("token1" in log.args && balance0.lt(balance1)) {
-                                tokenAddress = log.args.token1?.toLowerCase();
-                              } else {
-                                tokenAddress = log.args.token0?.toLowerCase();
-                              }
+
                               let tokenSymbol: string | null;
                               if (("token0" && "token1" in log.args) && balance0.lt(balance1)) {
-                                  tokenSymbol = await fetcher.getTokenSymbol(block - 1, token1);
+                                  const tokena = await fetcher.getTokenSymbol(block - 1, token1);
+                                  const tokenb = await fetcher.getTokenSymbol(block - 1, token0);
+                                  tokenSymbol = `${tokena} - ${tokenb}`;
                                 } else {
-                                  tokenSymbol = await fetcher.getTokenSymbol(block - 1, token0);
+                                    const tokena = await fetcher.getTokenSymbol(block - 1, token0);
+                                    const tokenb = await fetcher.getTokenSymbol(block - 1, token1);
+                                    tokenSymbol = `${tokena} - ${tokenb}`;
                                 }
                                  
                             const amount0: BigNumber = BigNumber.from(log.args.amount0);
@@ -82,10 +81,10 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                             tokenSymbol: JSON.stringify(tokenSymbol!),
                             attackerAddress: JSON.stringify(creatorAddress),
                             transaction: JSON.stringify(transaction.hash),
-                            tokenAddress: tokenAddress!,
+                            tokenAddress: JSON.stringify(log.address),
                             contractAddress: JSON.stringify(transaction.to),
                             event: JSON.stringify(log.name),
-                            deployer: JSON.stringify(log.args.sender),
+                            deployer: JSON.stringify(transaction.from!),
                         },
                     }));
                     }
