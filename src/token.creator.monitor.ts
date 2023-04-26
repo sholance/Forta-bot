@@ -41,17 +41,30 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                         const [valid, token0, token1, totalSupply] = await fetcher.getPoolData(block, event.args.pair);
                         const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, event.args.pair, token0, token1);
                             let tokenSymbol: string | null;
-                        if (("token0" && "token1" in event.args) && balance0.lt(balance1)) {
-                            const tokena = await fetcher.getTokenSymbol(block - 1, token1);
-                            const tokenb = await fetcher.getTokenSymbol(block - 1, token0);
-                            tokenSymbol = `${tokena} - ${tokenb}`;
-                          } else {
-                              const tokena = await fetcher.getTokenSymbol(block - 1, token0);
-                              const tokenb = await fetcher.getTokenSymbol(block - 1, token1);
-                              tokenSymbol = `${tokena} - ${tokenb}`;
-                          }
-                                                   
-                          findings.push(
+                            let address: string | null;
+                            if (("token0" && "token1" in event.args) && balance0.lt(balance1)) {
+                                const tokena = await fetcher.getTokenSymbol(block - 1, token1);
+                                const tokenb = await fetcher.getTokenSymbol(block - 1, token0);
+                                if (tokena === "WBNB" || tokena === "WETH") {
+                                    tokenSymbol = `${tokenb} - ${tokena}`;
+                                    address = `${token0}`
+                                } else {
+                                    tokenSymbol = `${tokena} - ${tokenb}`;
+                                    address = `${token1}`
+                                }
+                            } else {
+                                const tokena = await fetcher.getTokenSymbol(block - 1, token0);
+                                const tokenb = await fetcher.getTokenSymbol(block - 1, token1);
+                                if (tokena === "WBNB" || tokena === "WETH") {
+                                    tokenSymbol = `${tokenb} - ${tokena}`;
+                                    address = `${token1}`
+                                } else {
+                                    tokenSymbol = `${tokena} - ${tokenb}`;
+                                    address = `${token0}`
+                                }
+                            }
+                          if (valid) {
+                            findings.push(
                             Finding.fromObject({
                                     name: 'Potentially Suspicious Creator',
                                     description: `Pool created by creator with ${nonce} transactions`,
@@ -71,7 +84,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                         tokenSymbol: JSON.stringify(tokenSymbol!),
                                         attackerAddress: JSON.stringify(creatorAddress),
                                         transaction: JSON.stringify(transaction.hash),
-                                        tokenAddress: tokenAddress,
+                                        tokenAddress: JSON.stringify(address!),
                                         nonce: JSON.stringify(nonce),
                                         contractAddress: JSON.stringify(event.address.toLowerCase()),
                                         event: JSON.stringify(event.name),
@@ -81,7 +94,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                             );
                 }
                 }
-                }
+                }}
             }
             catch (error: any) {
             }

@@ -36,18 +36,33 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
    
                 const [valid, token0, token1, totalSupply] = await fetcher.getPoolData(block, pairCreatedEvents[0].args.pair);
                 const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, pairCreatedEvents[0].args.pair, token0, token1);
-                  let tokenSymbol: string | null;
-              if (("token0" && "token1" in pairCreatedEvents) && balance0.lt(balance1)) {
-                  const tokena = await fetcher.getTokenSymbol(block - 1, token1);
-                  const tokenb = await fetcher.getTokenSymbol(block - 1, token0);
-                  tokenSymbol = `${tokena} - ${tokenb}`;
+                let tokenSymbol: string | null;
+                let address: string | null;
+                if (("token0" && "token1" in pairCreatedEvents) && balance0.lt(balance1)) {
+                    const tokena = await fetcher.getTokenSymbol(block - 1, token1);
+                    const tokenb = await fetcher.getTokenSymbol(block - 1, token0);
+                    if (tokena === "WBNB" || tokena === "WETH") {
+                        tokenSymbol = `${tokenb} - ${tokena}`;
+                        address = `${token0}`
+                    } else {
+                        tokenSymbol = `${tokena} - ${tokenb}`;
+                        address = `${token1}`
+                    }
                 } else {
                     const tokena = await fetcher.getTokenSymbol(block - 1, token0);
                     const tokenb = await fetcher.getTokenSymbol(block - 1, token1);
-                    tokenSymbol = `${tokena} - ${tokenb}`;
+                    if (tokena === "WBNB" || tokena === "WETH") {
+                        tokenSymbol = `${tokenb} - ${tokena}`;
+                        address = `${token1}`
+                    } else {
+                        tokenSymbol = `${tokena} - ${tokenb}`;
+                        address = `${token0}`
+                    }
                 }
                                          
                 const contractAddress = transaction.to?.toLowerCase();
+                if (valid) {
+
               findings.push(
                 Finding.fromObject({
                   name: `No Liquidity Deposits in ${tokenAddress}`,
@@ -75,13 +90,13 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     tokenSymbol: JSON.stringify(tokenSymbol),
                     attackerAddress: JSON.stringify(transaction.from),
                   transaction: JSON.stringify(transaction.hash),
-                  tokenAddress: tokenAddress,
+                  tokenAddress: JSON.stringify(address!),
                   contractAddress: JSON.stringify(contractAddress),
                   deployer: JSON.stringify(transaction.from),
                 },
               })
             );
-          }
+          }}
           catch (error: any) {
             console.log(`Error in detecting SOFT-RUG-PULL-SUS-LIQ-POOL-RESERVE-CHANGE: ${error.message}`);
 

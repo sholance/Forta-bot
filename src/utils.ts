@@ -2,6 +2,22 @@ import { Contract, BigNumber, providers } from "ethers";
 import { FUNCTIONS_ABI } from "./constants";
 import LRU from "lru-cache";
 
+export const NATIVE_TOKEN_SYMBOLS = [
+  "BNB",
+  "ETH",
+  "MATIC",
+  "SOL",
+  "AVAX",
+  "FTM",
+  "BSC"
+];
+interface TokenInfo {
+  address: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+  timestamp: number;
+}
 
 export class PoolFetcher {
     private provider: providers.Provider;
@@ -35,48 +51,32 @@ export class PoolFetcher {
         poolAddress: string,
         token0: string,
         token1: string
-    ): Promise<[BigNumber, BigNumber]> {
+    ): Promise<[BigNumber, BigNumber, Number, Number]> {
         const key: string = `poolBalance-${poolAddress}-${block}`;
-        if (this.cache.has(key)) return this.cache.get(key) as [BigNumber, BigNumber];
+        if (this.cache.has(key)) return this.cache.get(key) as [BigNumber, BigNumber, Number, Number];
         const token0Contract = new Contract(token0, FUNCTIONS_ABI, this.provider);
         const token1Contract = new Contract(token1, FUNCTIONS_ABI, this.provider);
-        let returnedValues: [BigNumber, BigNumber];
+        const token0Timestamp = (await this.provider.getBlock(token0Contract.blockNumber)).timestamp;
+        const token1Timestamp = (await this.provider.getBlock(token1Contract.blockNumber)).timestamp;
+
+        let returnedValues: [BigNumber, BigNumber, Number, Number];
         try {
             const [balance0, balance1] = await Promise.all([
                 token0Contract.balanceOf(poolAddress, { blockTag: block }),
                 token1Contract.balanceOf(poolAddress, { blockTag: block }),
             ]);
-            returnedValues = [BigNumber.from(balance0), BigNumber.from(balance1)];
+            returnedValues = [BigNumber.from(balance0), BigNumber.from(balance1), token0Timestamp, token1Timestamp];
         } catch {
-            returnedValues = [BigNumber.from(0), BigNumber.from(0)];
+            returnedValues = [BigNumber.from(0), BigNumber.from(0), 0, 0];
         }
         this.cache.set(key, returnedValues);
         return returnedValues;
-    }
-    public async getAssetSymbol(
-        block: number,
-        tokenAddress: string,
-      ): Promise<string | null> {
-        const key: string = `symbol-${tokenAddress}-${block}`;
-        if (this.cache.has(key)) return this.cache.get(key) as unknown as string;
-        try {
-          const pool = new Contract(tokenAddress, FUNCTIONS_ABI, this.provider);
-          const symbol = await pool.symbol({ blockTag: block });
-          this.cache.set(key, symbol);
-          return symbol;
-        } catch (error: any) {
-          const pool = new Contract(tokenAddress, FUNCTIONS_ABI, this.provider);
-          const tokenName = await pool.name({ blockTag: block });
-          this.cache.set(key, tokenName);
-          return tokenName;
-        }
-      }
+    }  
       public async getTokenSymbol(
         block: number,
         tokenAddress: string,
       ): Promise<string | null> {
         const key: string = `symbol-${tokenAddress}-${block}`;
-        if (tokenAddress === 'native') return 'native';
       
         if (this.cache.has(key)) {
           return this.cache.get(key) as any;
