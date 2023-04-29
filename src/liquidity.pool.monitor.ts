@@ -64,6 +64,8 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                 if (valid) {
 
               findings.push(
+
+                
                 Finding.fromObject({
                   name: `No Liquidity Deposits in ${tokenAddress}`,
                   description: `No one has deposited liquidity into the pool for the tracked token on ${evmName}`,
@@ -73,7 +75,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                   labels: [
                     {
                       entityType: EntityType.Address,
-                      entity: tokenAddress!,
+                      entity: address!,
                       label: "token-address",
                       confidence: 0.8,
                       remove: false,
@@ -91,7 +93,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     attackerAddress: JSON.stringify(transaction.from),
                   transaction: JSON.stringify(transaction.hash),
                   tokenAddress: JSON.stringify(address!),
-                  contractAddress: JSON.stringify(contractAddress),
+                  contractAddress: JSON.stringify(address!),
                   deployer: JSON.stringify(transaction.from),
                 },
               })

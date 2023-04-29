@@ -39,22 +39,29 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, event.address, token0, token1);
 
                     
-                    let tokenAddress: string | undefined;
-                    if ("token1" in event.args && balance0.lt(balance1)) {
-                        tokenAddress = event.args.token1?.toLowerCase();
-                      } else {
-                        tokenAddress = event.args.token0?.toLowerCase();
-                      }
-                      let tokenSymbol: string | null;
-                      if (("token0" && "token1" in event.args) && balance0.lt(balance1)) {
-                          const tokena = await fetcher.getTokenSymbol(block - 1, token1);
-                          const tokenb = await fetcher.getTokenSymbol(block - 1, token0);
-                          tokenSymbol = `${tokena}-${tokenb}`;
-                        } else {
-                            const tokena = await fetcher.getTokenSymbol(block - 1, token0);
-                            const tokenb = await fetcher.getTokenSymbol(block - 1, token1);
-                            tokenSymbol = `${tokena}-${tokenb}`;
-                        }
+                            let tokenSymbol: string | null;
+                            let address: string | null;
+                            if (("token0" && "token1" in event.args) && balance0.lt(balance1)) {
+                                const tokena = await fetcher.getTokenSymbol(block - 1, token1);
+                                const tokenb = await fetcher.getTokenSymbol(block - 1, token0);
+                                if (tokena === "WBNB" || tokena === "WETH") {
+                                    tokenSymbol = `${tokenb} - ${tokena}`;
+                                    address = `${token0}`
+                                } else {
+                                    tokenSymbol = `${tokena} - ${tokenb}`;
+                                    address = `${token1}`
+                                }
+                            } else {
+                                const tokena = await fetcher.getTokenSymbol(block - 1, token0);
+                                const tokenb = await fetcher.getTokenSymbol(block - 1, token1);
+                                if (tokena === "WBNB" || tokena === "WETH") {
+                                    tokenSymbol = `${tokenb} - ${tokena}`;
+                                    address = `${token1}`
+                                } else {
+                                    tokenSymbol = `${tokena} - ${tokenb}`;
+                                    address = `${token0}`
+                                }
+                            }
                          
                     try {
                         findings.push(
@@ -74,7 +81,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                     },
                                     {
                                         entityType: EntityType.Transaction,
-                                        entity: tokenAddress!,
+                                        entity: address!,
                                         label: "soft-rug-pull-address",
                                         confidence: 0.9,
                                         remove: false,
@@ -85,10 +92,10 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                     tokenSymbol: JSON.stringify(tokenSymbol),
                                     attacker_address: JSON.stringify(transaction.from),
                                     transaction: JSON.stringify(transaction.hash),
-                                    tokenAddress: tokenAddress!,
-                                    contractAddress: JSON.stringify(transaction.to),
+                                    tokenAddress: address!,
+                                    contractAddress: JSON.stringify(address!),
                                     event: JSON.stringify(event.name),
-                                    poolAddress: JSON.stringify(event.args.pool0 && event.args.pool1),
+                                    deployer: JSON.stringify(transaction.from!),
                                 },
                             })
                         );
