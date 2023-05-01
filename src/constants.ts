@@ -60,6 +60,23 @@ export const FUNCTIONS_ABI: string[] = [
   "function totalSupply() public view returns (uint256)",
   "function balanceOf(address account) external view returns (uint256)",
 ];
+export const ALTERNATIVE_ABI = [
+  "function symbol() view returns (bytes32)",
+  "function name() view returns (bytes32)"
+];
+export const SYMBOL_ABI_LIST = [
+  'function symbol() public view returns (string)',
+  'function symbol() public view returns (string memory)',
+  'function symbol() public view override returns (string memory)',
+  'function symbol() external view returns (string)',
+  'function symbol() external view returns (string memory)',
+  'function symbol() public pure returns (string)',
+  'function symbol() public pure returns (string memory)',
+  'function symbol() public virtual view returns (string)',
+  'function symbol() public virtual view returns (string memory)',
+  'function symbol() public virtual override view returns (string memory)'
+];
+
 
 
 // sample rug pull addresses:

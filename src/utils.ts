@@ -1,6 +1,8 @@
 import { Contract, BigNumber, providers } from "ethers";
-import { FUNCTIONS_ABI } from "./constants";
+import { ALTERNATIVE_ABI, FUNCTIONS_ABI, SYMBOL_ABI_LIST } from "./constants";
 import LRU from "lru-cache";
+import { ethers } from "forta-agent";
+
 
 export const NATIVE_TOKEN_SYMBOLS = [
   "BNB",
@@ -72,32 +74,65 @@ export class PoolFetcher {
         this.cache.set(key, returnedValues);
         return returnedValues;
     }  
-      public async getTokenSymbol(
-        block: number,
-        tokenAddress: string,
-      ): Promise<string | null> {
-        const key: string = `symbol-${tokenAddress}-${block}`;
+    // public async getTokenSymbolv1(
+    //   block: number,
+    //   tokenAddress: string,
+    // ): Promise<string> {
+    //   const key: string = `symbol-${tokenAddress}-${block}`;
       
-        if (this.cache.has(key)) {
-          return this.cache.get(key) as any;
-        }
+    //   if (this.cache.has(key)) {
+    //     return this.cache.get(key) as any;
+    //   }
       
-        const contract = new Contract(tokenAddress, FUNCTIONS_ABI, this.provider);
-        let symbol: any;
-        try {
-          symbol = await contract.symbol({ blockTag: block });
-        } catch {
-            
-        }
+    //   const contract = new ethers.Contract(
+    //     ethers.utils.getAddress(tokenAddress),
+    //     FUNCTIONS_ABI,
+    //     this.provider
+    //   );
+    
+    //   let symbol: any;
+    
+    //   try {
+    //     symbol = await contract.symbol({ blockTag: block });
+    //   } catch (e) {
+    //     try {
+    //       const contractb = new ethers.Contract(
+    //         tokenAddress,
+    //         ALTERNATIVE_ABI,
+    //         this.provider
+    //       );
+    //       const bytes32Symbol = await contractb.symbol();
+    //       symbol = ethers.utils.parseBytes32String(bytes32Symbol);
+    //     } catch (e) {
+    //       symbol = "UNKNOWN";
+    //     }
+    //   }
+    
+    //   this.cache.set(key, symbol);
+    
+    //   return symbol;
+    // }
+    public async getTokenSymbol(
+      block: number,
+      tokenAddress: string,
+    ): Promise<string> {
+      const key: string = `symbol-${tokenAddress}-${block}`;
       
-        if (symbol) {
-          this.cache.set(key, symbol);
-        } else {
-            this.cache.set(key, symbol!)
-        }
-      
-        return symbol;
+      if (this.cache.has(key)) {
+        return this.cache.get(key) as any;
       }
-      
-      
+
+    for (const abi of SYMBOL_ABI_LIST) {
+      try {
+        const contract = new ethers.Contract(tokenAddress, [abi], this.provider);
+        const symbol = await contract.symbol();
+        this.cache.set(key, symbol);
+        return symbol;
+      } catch (error) {
+        continue;
+      }
+    }
+  
+    return 'UNKNOWN';
+  }
 }

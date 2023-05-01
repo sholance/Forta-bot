@@ -65,7 +65,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
 
               findings.push(
 
-                
+
                 Finding.fromObject({
                   name: `No Liquidity Deposits in ${tokenAddress}`,
                   description: `No one has deposited liquidity into the pool for the tracked token on ${evmName}`,
@@ -73,6 +73,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                   severity: FindingSeverity.Medium,
                   type: FindingType.Suspicious,
                   labels: [
+
                     {
                       entityType: EntityType.Address,
                       entity: address!,
