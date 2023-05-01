@@ -41,8 +41,8 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                 if (("token0" && "token1" in pairCreatedEvents) && balance0.lt(balance1)) {
                     const tokena = await fetcher.getTokenSymbol(block - 1, token1);
                     const tokenb = await fetcher.getTokenSymbol(block - 1, token0);
-                    if (tokena === "WBNB" || tokena === "WETH") {
-                        tokenSymbol = `${tokenb} - ${tokena}`;
+                    if (tokena === "WBNB" || tokena === "WETH" || tokena === "USDT") {
+                      tokenSymbol = `${tokenb} - ${tokena}`;
                         address = `${token0}`
                     } else {
                         tokenSymbol = `${tokena} - ${tokenb}`;
@@ -51,8 +51,8 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                 } else {
                     const tokena = await fetcher.getTokenSymbol(block - 1, token0);
                     const tokenb = await fetcher.getTokenSymbol(block - 1, token1);
-                    if (tokena === "WBNB" || tokena === "WETH") {
-                        tokenSymbol = `${tokenb} - ${tokena}`;
+                    if (tokena === "WBNB" || tokena === "WETH" || tokena === "USDT") {
+                      tokenSymbol = `${tokenb} - ${tokena}`;
                         address = `${token1}`
                     } else {
                         tokenSymbol = `${tokena} - ${tokenb}`;
