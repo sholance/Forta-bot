@@ -78,6 +78,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                             label: 'creator',
                                             confidence: 0.6,
                                             remove: false,
+                                            metadata: {}
                                         },
                                     ],
                                     metadata: {

@@ -78,6 +78,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                         label: "attacker",
                                         confidence: 0.9,
                                         remove: false,
+                                        metadata: {}
                                     },
                                     {
                                         entityType: EntityType.Transaction,
@@ -85,6 +86,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                         label: "soft-rug-pull-address",
                                         confidence: 0.9,
                                         remove: false,
+                                        metadata: {}
                                     },
 
                                 ],

@@ -73,13 +73,13 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                   severity: FindingSeverity.Medium,
                   type: FindingType.Suspicious,
                   labels: [
-
                     {
                       entityType: EntityType.Address,
                       entity: address!,
                       label: "token-address",
                       confidence: 0.8,
                       remove: false,
+                      metadata: {},
                     },
                     {
                       entityType: EntityType.Transaction,
@@ -87,6 +87,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                       label: "pair-monitored",
                       confidence: 0.8,
                       remove: false,
+                      metadata: {},
                     }
                   ],
                   metadata: {
