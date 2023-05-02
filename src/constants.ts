@@ -35,8 +35,8 @@ export const SWAP_FACTORY_ADDRESSES: Record<string, string> = {
   avalanche: "0x794C07912474351b3134E6D6B3B7b3b4A07cbAAa", //uniswap
   bsc: "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73", //pancakeswap
   polygon: "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32", //quickswap
-  fantom: "0x514053a5bAa4CfEf80Aa7c2a55d2C8365A5B5EAd", //sushiswap
-  arbitrum: "0x84fBa05A20F09a556eBAbf745d9e5DF5D794A038", //
+  fantom: "0x514053a5bAa4CFef80aA7C2A55d2c8365a5B5eAd", //sushiswap
+  arbitrum: "0x84FBa05a20f09a556EBAbf745D9E5df5d794a038", //
   optimism: "0x1F98431c8aD98523631AE4a59f267346ea31F984" // uniswap
 };
 // Multicall2 contract addresses used by this class.
@@ -50,6 +50,9 @@ export const multicall2Addresses: Record<number, string> = {
   43114: "0x794C07912474351b3134E6D6B3B7b3b4A07cbAAa", // Avalanche
 };
 
+export const SWAP_FACTORY_ABI = [
+  'function getPair(address tokenA, address tokenB) external view returns (address pair)'
+];
 
 
 export const FUNCTIONS_ABI: string[] = [
@@ -57,6 +60,7 @@ export const FUNCTIONS_ABI: string[] = [
   "function token1() public view returns (address)",
   "function symbol() external view returns (string)",
   "function name() public view returns (string)",
+  "function getPair(address tokenA, address tokenB) external view returns (address pair)",
   "function totalSupply() public view returns (uint256)",
   "function balanceOf(address account) external view returns (uint256)",
 ];

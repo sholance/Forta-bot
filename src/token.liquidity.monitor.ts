@@ -1,8 +1,8 @@
 import { Finding, HandleTransaction, FindingSeverity, FindingType, TransactionEvent, EntityType, getEthersProvider, LogDescription } from "forta-agent";
-import { BigNumber, utils } from "ethers";
+import { BigNumber, utils, ethers } from "ethers";
 import { PoolFetcher } from "./utils";
 // This is the address of the token and the events in the liquidity contract we're monitoring
-const { SWAP_FACTORY_ADDRESSES, PAIRCREATED_EVENT_ABI, ADDLIQUIDITY_EVENT_ABI, BURN_EVENT_ABI, } = require("./constants");
+const { SWAP_FACTORY_ADDRESSES, PAIRCREATED_EVENT_ABI, SWAP_FACTORY_ABI, ADDLIQUIDITY_EVENT_ABI, BURN_EVENT_ABI, } = require("./constants");
 
 // const THRESHOLD_PERCENTAGE = require("./utils")
 const THRESHOLD_PERCENTAGE: BigNumber = BigNumber.from(90);
@@ -29,12 +29,17 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     const [valid, token0, token1, totalSupply] = await fetcher.getPoolData(block, log.address);
                     let transaction = txEvent.transaction;
                     const creatorAddress = transaction.from;
-
-                    if (valid && totalSupply.gt(0)) {
+                    const provider = getEthersProvider();
+               if (valid && totalSupply.gt(0)) {
                         // const tokenSymbol = await fetcher.getTokenSymbol(block - 1, tokenAddress!); // Get token symbol using custom function
                         try {
                             const [balance0, balance1] = await fetcher.getPoolBalance(block - 1, log.address, token0, token1);
-
+                            const factoryInterface = new ethers.Contract(
+                                swapFactoryAddress,
+                                SWAP_FACTORY_ABI,
+                                provider
+                              );
+                              const pairAddress = await factoryInterface.getPair(token0, token1);     
                             let tokenSymbol: string | null;
                             let address: string | null;
                             if (("token0" && "token1" in log.args) && balance0.lt(balance1)) {
@@ -57,9 +62,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                                     tokenSymbol = `${tokena} - ${tokenb}`;
                                     address = `${token0}`
                                 }
-                            }
-                            
-                                 
+                            }      
                             const amount0: BigNumber = BigNumber.from(log.args.amount0);
                             const amount1: BigNumber = BigNumber.from(log.args.amount1);
                             const percentageToken0Out = balance0.isZero() ? BigNumber.from(0) : amount0.mul(100).div(balance0);
@@ -97,14 +100,13 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                             attackerAddress: JSON.stringify(creatorAddress),
                             transaction: JSON.stringify(transaction.hash),
                             tokenAddress: JSON.stringify(address!),
-                            contractAddress: JSON.stringify(address!), 
+                            contractAddress: JSON.stringify(pairAddress!), 
                             event: JSON.stringify(log.name),
                             deployer: JSON.stringify(transaction.from!),
                         },
                     }));
                     }}
                         } catch (error: any) {
-                            console.log(`Error in detecting SOFT-RUG-PULL-SUS-LIQ-POOL-REMOVAL in token.liquidity.monitor: ${error.message}`);
                         }
                     }
                 })

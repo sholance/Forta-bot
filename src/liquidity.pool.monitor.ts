@@ -94,7 +94,7 @@ export const provideHandleTransaction = (alertId: string, swapFactoryAddresses: 
                     attackerAddress: JSON.stringify(transaction.from),
                   transaction: JSON.stringify(transaction.hash),
                   tokenAddress: JSON.stringify(address!),
-                  contractAddress: JSON.stringify(address!),
+                  contractAddress: JSON.stringify(pairAddress!),
                   deployer: JSON.stringify(transaction.from),
                 },
               })
